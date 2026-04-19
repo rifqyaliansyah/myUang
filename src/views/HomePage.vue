@@ -1,56 +1,45 @@
 <template>
-  <ion-page>
-    <ion-header :translucent="true">
-      <ion-toolbar>
-        <ion-title>Blank</ion-title>
-      </ion-toolbar>
-    </ion-header>
+  <ion-tabs>
+    <ion-tab tab="home">
+      <HomeTab />
+    </ion-tab>
+    <ion-tab tab="radio">
+      <RadioTab />
+    </ion-tab>
+    <ion-tab tab="library">
+      <LibraryTab />
+    </ion-tab>
+    <ion-tab tab="search">
+      <SearchTab />
+    </ion-tab>
 
-    <ion-content :fullscreen="true">
-      <ion-header collapse="condense">
-        <ion-toolbar>
-          <ion-title size="large">Blank</ion-title>
-        </ion-toolbar>
-      </ion-header>
-
-      <div id="container">
-        <strong>Ready to create an app?</strong>
-        <p>Start with Ionic <a target="_blank" rel="noopener noreferrer" href="https://ionicframework.com/docs/components">UI Components</a></p>
-      </div>
-    </ion-content>
-  </ion-page>
+    <ion-tab-bar slot="bottom" color="primary">
+      <ion-tab-button tab="home">
+        <ion-icon :icon="playCircle" />
+        Listen Now
+      </ion-tab-button>
+      <ion-tab-button tab="radio">
+        <ion-icon :icon="radio" />
+        Radio
+      </ion-tab-button>
+      <ion-tab-button tab="library">
+        <ion-icon :icon="library" />
+        Library
+      </ion-tab-button>
+      <ion-tab-button tab="search">
+        <ion-icon :icon="search" />
+        Search
+      </ion-tab-button>
+    </ion-tab-bar>
+  </ion-tabs>
 </template>
 
 <script setup lang="ts">
-import { IonContent, IonHeader, IonPage, IonTitle, IonToolbar } from '@ionic/vue';
+import { IonTab, IonTabs, IonTabBar, IonTabButton, IonIcon } from '@ionic/vue'
+import { playCircle, radio, library, search } from 'ionicons/icons'
+
+import HomeTab from './components/HomeTab.vue'
+import RadioTab from './components/RadioTab.vue'
+import LibraryTab from './components/LibraryTab.vue'
+import SearchTab from './components/SearchTab.vue'
 </script>
-
-<style scoped>
-#container {
-  text-align: center;
-  
-  position: absolute;
-  left: 0;
-  right: 0;
-  top: 50%;
-  transform: translateY(-50%);
-}
-
-#container strong {
-  font-size: 20px;
-  line-height: 26px;
-}
-
-#container p {
-  font-size: 16px;
-  line-height: 22px;
-  
-  color: #8c8c8c;
-  
-  margin: 0;
-}
-
-#container a {
-  text-decoration: none;
-}
-</style>
