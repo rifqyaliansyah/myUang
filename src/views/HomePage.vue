@@ -3,19 +3,25 @@
         <ion-content class="page-content" :fullscreen="true">
             <!-- Hero Header -->
             <div class="hero-header">
-                <div class="hero-left">
+                <div class="hero-top">
+                    <div class="brand-wrapper">
+                        <span class="brand">MyUang</span>
+                        <span class="brand-sub">by rifqy</span>
+                    </div>
+                    <div class="hero-actions">
+                        <ion-icon :icon="notificationsOutline" class="notif-icon" />
+                        <div class="avatar">
+                            <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" />
+                        </div>
+                    </div>
+                </div>
+                <div class="hero-bottom">
                     <div class="wallet-selector">
                         <span class="wallet-label">Main Wallet</span>
                         <ion-icon :icon="chevronDownOutline" class="chevron-icon" />
                     </div>
                     <div class="hero-balance">
                         <h2>IDR 5.000.000</h2>
-                    </div>
-                </div>
-                <div class="hero-actions">
-                    <ion-icon :icon="notificationsOutline" class="notif-icon" />
-                    <div class="avatar">
-                        <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" />
                     </div>
                 </div>
             </div>
@@ -124,6 +130,7 @@
                 </div>
             </div>
         </ion-content>
+
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
             <ion-fab-button class="fab-btn">
                 <ion-icon :icon="addOutline" class="fab-icon" />
@@ -133,7 +140,7 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent } from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton } from '@ionic/vue'
 import {
     chevronDownOutline,
     notificationsOutline,
@@ -158,38 +165,42 @@ import {
 
 /* Hero Header */
 .hero-header {
-    background: linear-gradient(135deg, #3077E3 0%, var(--color-primary-2) 100%);
+    background: linear-gradient(180deg, #3077E3 0%, var(--color-primary-2) 100%);
     padding: 12px 16px 16px;
     display: flex;
-    flex-direction: row;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.hero-top {
+    display: flex;
     align-items: center;
     justify-content: space-between;
 }
 
-.hero-left {
+.brand-wrapper {
     display: flex;
-    flex-direction: column;
-    gap: 8px;
-}
-
-.wallet-selector {
-    display: flex;
-    align-items: center;
+    flex-direction: row;
+    align-items: baseline;
     gap: 4px;
-    cursor: pointer;
+    margin: 0;
+    padding: 0;
 }
 
-.wallet-label {
-    font-size: 16px;
-    font-weight: 500;
-    line-height: 24px;
-    color: rgba(255, 255, 255, 0.9);
+.brand {
+    font-size: 20px;
+    font-weight: 700;
     letter-spacing: -0.02em;
+    color: var(--color-white);
+    line-height: 1.2;
 }
 
-.chevron-icon {
-    font-size: 16px;
-    color: rgba(255, 255, 255, 0.9);
+.brand-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: rgba(255, 255, 255, 0.6);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
 }
 
 .hero-actions {
@@ -216,6 +227,32 @@ import {
     width: 100%;
     height: 100%;
     object-fit: cover;
+}
+
+.hero-bottom {
+    display: flex;
+    flex-direction: column;
+    gap: 4px;
+}
+
+.wallet-selector {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    cursor: pointer;
+}
+
+.wallet-label {
+    font-size: 16px;
+    font-weight: 500;
+    line-height: 24px;
+    color: rgba(255, 255, 255, 0.9);
+    letter-spacing: -0.02em;
+}
+
+.chevron-icon {
+    font-size: 16px;
+    color: rgba(255, 255, 255, 0.9);
 }
 
 .hero-balance h2 {

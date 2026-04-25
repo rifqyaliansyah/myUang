@@ -6,7 +6,7 @@
                 <div class="login-header">
                     <img src="../../../public/assets/image/check.png" alt="success" class="success-image" />
                     <h1>Great, PIN Successfully Created</h1>
-                    <p>Happy managing your finances with Montrack!</p>
+                    <p>Happy managing your finances with MyUang!</p>
                 </div>
 
                 <!-- Footer -->

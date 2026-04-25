@@ -4,7 +4,7 @@
             <div class="login-wrapper">
                 <div class="login-header">
                     <h1>Sign Up</h1>
-                    <p>Please sign up to enjoy all Montrack features</p>
+                    <p>Please sign up to enjoy all MyUang features</p>
                 </div>
 
                 <!-- Form -->
