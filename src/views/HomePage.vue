@@ -39,7 +39,8 @@
 
                 <!-- Summary Grid -->
                 <div class="summary-grid">
-                    <ion-card class="summary-card">
+                    <!-- Income -->
+                    <ion-card class="summary-card clickable" @click="router.push('/income-summary')">
                         <ion-card-content>
                             <span class="card-emoji">🤑</span>
                             <div class="card-label income">
@@ -50,7 +51,8 @@
                         </ion-card-content>
                     </ion-card>
 
-                    <ion-card class="summary-card">
+                    <!-- Expense -->
+                    <ion-card class="summary-card clickable" @click="router.push('/expense-summary')">
                         <ion-card-content>
                             <span class="card-emoji">💸</span>
                             <div class="card-label expense">
@@ -330,6 +332,10 @@ const goToNotification = () => {
     flex-direction: column;
     gap: 6px;
     padding: 12px;
+}
+
+.summary-card.clickable {
+    cursor: pointer;
 }
 
 .card-emoji {

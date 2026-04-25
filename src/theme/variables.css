@@ -89,3 +89,7 @@ http://ionicframework.com/docs/theming/ */
   --ion-text-color:           #3c3c3c;
   --ion-text-color-rgb:       60, 60, 60;
 }
+
+ion-input {
+  --highlight-height: 0 !important;
+}

@@ -8,6 +8,9 @@ import SentMailPage from '../views/auth/SentMailPage.vue';
 import SetupPinPage from '../views/auth/SetupPinPage.vue';
 import WelcomePage from '../views/auth/WelcomePage.vue';
 import NotificationPage from '../views/NotificationPage.vue';
+import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue';
+import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue';
+import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -71,6 +74,21 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Notification',
     component: NotificationPage
   },
+  {
+    path: '/expense-summary',
+    name: 'Expense Summary',
+    component: ExpenseSummaryPage
+  },
+  {
+    path: '/income-summary',
+    name: 'Income Summary',
+    component: IncomeSummaryPage
+  },
+  {
+    path: '/add-money-record',
+    name: 'Add Money Record',
+    component: AddMoneyRecordPage
+  }
 ]
 
 const router = createRouter({
