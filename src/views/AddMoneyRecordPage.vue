@@ -291,7 +291,7 @@ const handleSave = () => {
     position: absolute;
     right: 12px;
     font-size: 16px;
-    color: var(--color-black-60);
+    color: var(--color-black-100);
     pointer-events: none;
 }
 

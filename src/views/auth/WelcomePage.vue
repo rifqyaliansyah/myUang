@@ -97,7 +97,7 @@ const handleGoHome = () => {
     --border-radius: 8px;
     --color: var(--color-white);
     --box-shadow: none;
-    height: 52px;
+    height: 40px;
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;

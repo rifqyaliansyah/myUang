@@ -202,7 +202,7 @@ const handleLogin = () => {
 }
 
 .toggle-password {
-    --color: var(--color-black-60);
+    --color: var(--color-black-100);
     --padding-start: 8px;
     --padding-end: 0;
     margin: 0;
@@ -220,7 +220,7 @@ const handleLogin = () => {
     --border-radius: 8px;
     --color: var(--color-white);
     --box-shadow: none;
-    height: 52px;
+    height: 40px;
     font-size: 16px;
     font-weight: 600;
     line-height: 24px;

@@ -134,7 +134,7 @@
         </ion-content>
 
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-            <ion-fab-button class="fab-btn">
+            <ion-fab-button class="fab-btn" @click="router.push('/add-money-record')">
                 <ion-icon :icon="addOutline" class="fab-icon" />
             </ion-fab-button>
         </ion-fab>
