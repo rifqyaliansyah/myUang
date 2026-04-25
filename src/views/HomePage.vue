@@ -9,7 +9,7 @@
                         <span class="brand-sub">by Me</span>
                     </div>
                     <div class="hero-actions">
-                        <ion-icon :icon="notificationsOutline" class="notif-icon" />
+                        <ion-icon :icon="notificationsOutline" class="notif-icon" @click="goToNotification" />
                         <div class="avatar">
                             <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" />
                         </div>
@@ -141,6 +141,7 @@
 
 <script setup lang="ts">
 import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import {
     chevronDownOutline,
     notificationsOutline,
@@ -148,6 +149,12 @@ import {
     caretDownOutline,
     addOutline,
 } from 'ionicons/icons'
+
+const router = useRouter()
+
+const goToNotification = () => {
+    router.push('/notification')
+}
 </script>
 
 <style scoped>
@@ -212,6 +219,7 @@ import {
 .notif-icon {
     font-size: 24px;
     color: var(--color-white);
+    cursor: pointer;
 }
 
 .avatar {

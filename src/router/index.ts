@@ -7,6 +7,7 @@ import ForgotPasswordPage from '../views/auth/ForgotPasswordPage.vue';
 import SentMailPage from '../views/auth/SentMailPage.vue';
 import SetupPinPage from '../views/auth/SetupPinPage.vue';
 import WelcomePage from '../views/auth/WelcomePage.vue';
+import NotificationPage from '../views/NotificationPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -64,6 +65,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/welcome',
     name: 'Welcome',
     component: WelcomePage
+  },
+  {
+    path: '/notification',
+    name: 'Notification',
+    component: NotificationPage
   },
 ]
 
