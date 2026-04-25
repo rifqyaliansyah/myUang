@@ -1,6 +1,6 @@
 import { createRouter, createWebHistory } from '@ionic/vue-router';
 import { RouteRecordRaw } from 'vue-router';
-import HomePage from '../views/HomePage.vue'
+import TabsPage from '../views/TabsPage.vue'
 import LoginPage from '../views/auth/LoginPage.vue'
 import SignUpPage from '../views/auth/SignUpPage.vue';
 import ForgotPasswordPage from '../views/auth/ForgotPasswordPage.vue';
@@ -14,9 +14,26 @@ const routes: Array<RouteRecordRaw> = [
     redirect: '/home'
   },
   {
-    path: '/home',
-    name: 'Home',
-    component: HomePage
+    path: '/',
+    component: TabsPage,
+    children: [
+      {
+        path: 'home',
+        component: () => import('../views/HomePage.vue')
+      },
+      {
+        path: 'budgeting',
+        component: () => import('../views/BudgetingPage.vue')
+      },
+      {
+        path: 'goals',
+        component: () => import('../views/GoalsPage.vue')
+      },
+      {
+        path: 'profile',
+        component: () => import('../views/ProfilePage.vue')
+      },
+    ]
   },
   {
     path: '/login',

@@ -3,8 +3,8 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
                 <div class="page-header">
-                    <h1>Home</h1>
-                    <p>Welcome to your home page</p>
+                    <h1>Profile</h1>
+                    <p>Manage your profile here</p>
                 </div>
             </div>
         </ion-content>
