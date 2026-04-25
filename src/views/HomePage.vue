@@ -6,7 +6,7 @@
                 <div class="hero-top">
                     <div class="brand-wrapper">
                         <span class="brand">MyUang</span>
-                        <span class="brand-sub">by rifqy</span>
+                        <span class="brand-sub">by Me</span>
                     </div>
                     <div class="hero-actions">
                         <ion-icon :icon="notificationsOutline" class="notif-icon" />
