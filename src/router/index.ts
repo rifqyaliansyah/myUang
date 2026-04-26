@@ -17,6 +17,8 @@ import PocketFormPage from '../views/budgeting/PocketFormPage.vue';
 import PocketDetailPage from '../views/budgeting/PocketDetailPage.vue';
 import GoalsFormPage from '../views/goals/GoalsFormPage.vue';
 import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue';
+import ProfileFormPage from '../views/profile/ProfileFormPage.vue';
+import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -139,6 +141,16 @@ const routes: Array<RouteRecordRaw> = [
     path: '/detail-goals/:id',
     name: 'Detail Goals',
     component: GoalsDetailPage
+  },
+  {
+    path: '/edit-profile',
+    name: 'Edit Profile',
+    component: ProfileFormPage
+  },
+  {
+    path: '/language',
+    name: 'Language',
+    component: ChangeLanguagePage
   },
 ]
 
