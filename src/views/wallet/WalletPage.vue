@@ -369,3 +369,20 @@ const handleAddWallet = () => {
     justify-content: center !important;
 }
 </style>
+
+<style>
+.delete-alert .alert-btn-yes {
+    flex: 1;
+    width: 147.5px !important;
+    height: 48px !important;
+    background: var(--color-red) !important;
+    border-radius: 8px !important;
+    color: #ffffff !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    letter-spacing: -0.02em;
+    line-height: 24px;
+    text-transform: none !important;
+    justify-content: center !important;
+}
+</style>
