@@ -63,7 +63,7 @@
                         </ion-card-content>
                     </ion-card>
 
-                    <ion-card class="summary-card">
+                    <ion-card class="summary-card clickable" @click="router.push('/budgeting')">
                         <ion-card-content>
                             <span class="card-emoji">🪨</span>
                             <div class="card-label neutral">
@@ -73,7 +73,7 @@
                         </ion-card-content>
                     </ion-card>
 
-                    <ion-card class="summary-card">
+                    <ion-card class="summary-card clickable" @click="router.push('/goals')">
                         <ion-card-content>
                             <span class="card-emoji">📌</span>
                             <div class="card-label neutral">
