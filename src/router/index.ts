@@ -11,6 +11,8 @@ import NotificationPage from '../views/NotificationPage.vue';
 import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue';
 import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue';
 import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue';
+import WalletPage from '../views/wallet/WalletPage.vue';
+import WalletFormPage from '../views/wallet/WalletFormPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -88,7 +90,22 @@ const routes: Array<RouteRecordRaw> = [
     path: '/add-money-record',
     name: 'Add Money Record',
     component: AddMoneyRecordPage
-  }
+  },
+  {
+    path: '/wallet',
+    name: 'Wallet',
+    component: WalletPage
+  },
+  {
+    path: '/add-wallet',
+    name: 'Add Wallet',
+    component: WalletFormPage
+  },
+  {
+    path: '/edit-wallet/:id',
+    name: 'Edit Wallet',
+    component: WalletFormPage
+  },
 ]
 
 const router = createRouter({
