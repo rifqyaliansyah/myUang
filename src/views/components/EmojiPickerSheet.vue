@@ -16,7 +16,7 @@
                 </div>
 
                 <!-- Emoji List -->
-                <div class="emoji-scroll">
+                <div class="emoji-scroll" @touchstart.stop @mousedown.stop>
                     <div v-for="category in filteredCategories" :key="category.name">
                         <div class="category-label">{{ category.name }}</div>
                         <div class="emoji-grid">
