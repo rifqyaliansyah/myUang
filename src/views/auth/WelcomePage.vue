@@ -48,7 +48,7 @@ const handleGoHome = () => {
     flex-direction: column;
     justify-content: center;
     height: 100%;
-    padding: 24px 16px 24px;
+    padding: 24px 16px 0px 16px;
 }
 
 /* Header */
