@@ -17,7 +17,7 @@
                     <div class="wallet-balance">IDR {{ formatAmount(wallet.balance) }}</div>
                     <div class="wallet-status" v-if="wallet.isActive">
                         <span>This wallet is currently used</span>
-                        <img src="../../../public/assets/icon/circle-check.svg" class="status-icon" />
+                        <img src="/assets/icon/circle-check.svg" class="status-icon" />
                     </div>
 
                     <!-- Popover -->

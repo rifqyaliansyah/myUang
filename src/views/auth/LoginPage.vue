@@ -47,7 +47,7 @@
                     <!-- Google Login -->
                     <div class="social-wrapper">
                         <ion-button fill="outline" class="google-btn" @click="loginWithGoogle">
-                            <img src="../../../public/assets/icon/google.svg" alt="Google" class="google-icon" />
+                            <img src="/assets/icon/google.svg" alt="Google" class="google-icon" />
                         </ion-button>
                     </div>
                 </div>

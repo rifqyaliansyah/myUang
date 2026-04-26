@@ -12,7 +12,7 @@
                         <div class="avatar-wrapper">
                             <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" class="avatar-img" />
                             <div class="avatar-edit-btn" @click="handleChangePhoto">
-                                <img src="../../../public/assets/icon/pen-solid.svg" class="edit-icon" />
+                                <img src="/assets/icon/pen-solid.svg" class="edit-icon" />
                             </div>
                         </div>
                     </div>
