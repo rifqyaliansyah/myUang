@@ -13,6 +13,8 @@ import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue';
 import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue';
 import WalletPage from '../views/wallet/WalletPage.vue';
 import WalletFormPage from '../views/wallet/WalletFormPage.vue';
+import PocketFormPage from '../views/budgeting/PocketFormPage.vue';
+import PocketDetailPage from '../views/budgeting/PocketDetailPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -105,6 +107,21 @@ const routes: Array<RouteRecordRaw> = [
     path: '/edit-wallet/:id',
     name: 'Edit Wallet',
     component: WalletFormPage
+  },
+  {
+    path: '/add-pocket',
+    name: 'Add Pocket',
+    component: PocketFormPage
+  },
+  {
+    path: '/edit-pocket/:id',
+    name: 'Edit Pocket',
+    component: PocketFormPage
+  },
+  {
+    path: '/detail-pocket/:id',
+    name: 'Detail Pocket',
+    component: PocketDetailPage
   },
 ]
 
