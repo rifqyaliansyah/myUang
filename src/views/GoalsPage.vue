@@ -288,6 +288,10 @@ const handleAddGoal = () => console.log('Add new goal')
     color: var(--color-red);
 }
 
+.menu-item--danger:active {
+    background: #fff0f0;
+}
+
 .menu-divider {
     height: 0.9px;
     background: var(--color-black-20);

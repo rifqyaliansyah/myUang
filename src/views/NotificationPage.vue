@@ -3,7 +3,7 @@
         <AppHeader title="Notification" :show-back="true" back-href="/home" :show-menu="true"
             menu-trigger-id="notif-menu" :menu-items="[
                 { label: 'Mark all read', handler: markAllRead },
-                { label: 'Remove all', handler: removeAll },
+                { label: 'Remove all', handler: removeAll, danger: true },
             ]" />
 
         <ion-content class="page-content" :fullscreen="true">

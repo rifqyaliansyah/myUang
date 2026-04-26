@@ -18,7 +18,7 @@
         class="app-header-popover">
         <ion-content class="popover-content">
             <template v-for="(item, index) in menuItems" :key="index">
-                <div class="menu-item" @click="item.handler">
+                <div class="menu-item" :class="{ 'menu-item--danger': item.danger }" @click="item.handler">
                     <span>{{ item.label }}</span>
                 </div>
                 <div v-if="index < menuItems.length - 1" class="menu-divider"></div>
@@ -45,6 +45,12 @@ import { ellipsisVertical } from 'ionicons/icons'
 interface MenuItem {
     label: string
     handler: () => void
+}
+
+interface MenuItem {
+    label: string
+    handler: () => void
+    danger?: boolean
 }
 
 const props = withDefaults(defineProps<{
@@ -123,8 +129,12 @@ const popoverStyle = computed(() => {
     text-align: center;
 }
 
-.menu-item:active {
-    background: var(--color-bg-4);
+.menu-item--danger:active {
+    background: #fff0f0;
+}
+
+.menu-item--danger span {
+    color: var(--color-red);
 }
 
 .menu-divider {
