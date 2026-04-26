@@ -23,7 +23,7 @@ body {
 .app-shell {
   max-width: 480px;
   margin: 0 auto;
-  height: 100vh;
+  height: 100dvh;
   position: relative;
   box-shadow: 0 0 12px rgba(var(--ion-color-dark-rgb), 0.08);
 }
