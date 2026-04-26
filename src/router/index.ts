@@ -15,6 +15,8 @@ import WalletPage from '../views/wallet/WalletPage.vue';
 import WalletFormPage from '../views/wallet/WalletFormPage.vue';
 import PocketFormPage from '../views/budgeting/PocketFormPage.vue';
 import PocketDetailPage from '../views/budgeting/PocketDetailPage.vue';
+import GoalsFormPage from '../views/goals/GoalsFormPage.vue';
+import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue';
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -122,6 +124,21 @@ const routes: Array<RouteRecordRaw> = [
     path: '/detail-pocket/:id',
     name: 'Detail Pocket',
     component: PocketDetailPage
+  },
+  {
+    path: '/add-goals',
+    name: 'Add Goals',
+    component: GoalsFormPage
+  },
+  {
+    path: '/edit-goals/:id',
+    name: 'Edit Goals',
+    component: GoalsFormPage
+  },
+  {
+    path: '/detail-goals/:id',
+    name: 'Detail Goals',
+    component: GoalsDetailPage
   },
 ]
 
