@@ -1,6 +1,10 @@
 <template>
     <ion-page>
         <ion-content class="login-content" :fullscreen="true">
+            <div class="brand-wrapper">
+                <span class="brand">MyUang</span>
+                <span class="brand-sub">by Me</span>
+            </div>
             <div class="login-wrapper">
                 <div class="login-header">
                     <h1>Forgot your password?</h1>
@@ -64,8 +68,33 @@ const handleSendRequest = () => {
 .login-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
+    min-height: calc(100% - 48px);
     padding: 24px 16px 24px;
+    box-sizing: border-box;
+}
+
+.brand-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+    padding: 24px 16px 0;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-black-100);
+    line-height: 1.2;
+}
+
+.brand-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--color-black-60);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
 }
 
 /* Header */

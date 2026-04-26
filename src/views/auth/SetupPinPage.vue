@@ -1,6 +1,10 @@
 <template>
     <ion-page>
         <ion-content class="login-content" :fullscreen="true">
+            <div class="brand-wrapper">
+                <span class="brand">MyUang</span>
+                <span class="brand-sub">by Me</span>
+            </div>
             <div class="login-wrapper">
                 <div class="login-header">
                     <h1>Setup PIN</h1>
@@ -115,8 +119,33 @@ function handleKey(key: string) {
 .login-wrapper {
     display: flex;
     flex-direction: column;
-    height: 100%;
-    padding: 24px 16px 24px;
+    min-height: calc(100% - 48px);
+    padding: 24px 16px 16px 16px;
+    box-sizing: border-box;
+}
+
+.brand-wrapper {
+    display: flex;
+    flex-direction: row;
+    align-items: baseline;
+    gap: 4px;
+    padding: 24px 16px 0px 16px;
+}
+
+.brand {
+    font-size: 20px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-black-100);
+    line-height: 1.2;
+}
+
+.brand-sub {
+    font-size: 10px;
+    font-weight: 400;
+    color: var(--color-black-60);
+    letter-spacing: -0.01em;
+    line-height: 1.2;
 }
 
 /* Header */
@@ -148,7 +177,7 @@ function handleKey(key: string) {
     justify-content: center;
     align-items: center;
     gap: 20px;
-    margin: 82px 0 48px;
+    margin: 48px 0 48px;
 }
 
 .pin-dot {
@@ -183,7 +212,6 @@ function handleKey(key: string) {
     display: flex;
     flex-direction: column;
     gap: 8px;
-    padding-bottom: 16px;
 }
 
 .keyboard-row {
