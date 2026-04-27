@@ -334,6 +334,12 @@ const handleAddPocket = () => router.push('/add-pocket')
     font-size: 32px;
     color: var(--color-white);
 }
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
 </style>
 
 <style>
