@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <AppHeader title="Add Money Record" :show-back="true" back-href="/home" :show-menu="false" />
+        <AppHeader title="Add Money Record" :show-back="true" back-href="/" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">

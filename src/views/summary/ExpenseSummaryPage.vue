@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <AppHeader title="Expense" :show-back="true" back-href="/home" :show-menu="false" />
+        <AppHeader title="Expense" :show-back="true" back-href="/" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">

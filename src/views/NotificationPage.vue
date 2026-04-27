@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <AppHeader title="Notification" :show-back="true" back-href="/home" :show-menu="true"
+        <AppHeader title="Notification" :show-back="true" back-href="/" :show-menu="true"
             menu-trigger-id="notif-menu" :menu-items="[
                 { label: 'Mark all read', handler: markAllRead },
                 { label: 'Remove all', handler: removeAll, danger: true },

@@ -31,14 +31,10 @@ const AFTER_LOGIN_BLOCKED = [...PUBLIC_ROUTES, ...TEMP_TOKEN_ROUTES, PIN_SUCCESS
 const routes: Array<RouteRecordRaw> = [
   {
     path: '/',
-    redirect: '/home'
-  },
-  {
-    path: '/',
     component: TabsPage,
     children: [
       {
-        path: 'home',
+        path: '',
         component: () => import('../views/HomePage.vue')
       },
       {
@@ -185,7 +181,7 @@ router.beforeEach(async (to, _from, next) => {
   const isBlockedAfterLogin = AFTER_LOGIN_BLOCKED.includes(to.path)
 
   if (auth.pinVerified && isBlockedAfterLogin) {
-    return next('/home')
+    return next('/')
   }
 
   if (isPublic) {

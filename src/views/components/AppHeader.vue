@@ -62,7 +62,7 @@ const props = withDefaults(defineProps<{
     menuTriggerId?: string
 }>(), {
     showBack: true,
-    backHref: '/home',
+    backHref: '/',
     showMenu: false,
     menuItems: () => [],
     menuTriggerId: 'app-header-menu-trigger',

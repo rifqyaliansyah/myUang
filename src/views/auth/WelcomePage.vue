@@ -34,7 +34,7 @@ import { chevronForwardOutline } from 'ionicons/icons'
 const router = useRouter()
 
 const handleGoHome = () => {
-    router.push('/home')
+    router.push('/')
 }
 </script>
 

@@ -98,7 +98,7 @@ async function handleKey(key: string) {
             auth.setTokens(accessToken, refreshToken)
             auth.setPinVerified()
 
-            router.replace('/home')
+            router.replace('/')
         } catch (err: any) {
             errorMessage.value = err.response?.data?.message || 'Invalid PIN'
             currentPin.value = ''
