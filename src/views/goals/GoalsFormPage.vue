@@ -65,7 +65,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { documentOutline, closeOutline } from 'ionicons/icons'
 import AppHeader from '../components/AppHeader.vue'
@@ -101,6 +101,11 @@ onMounted(async () => {
     }
 })
 
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
 const triggerFilePicker = () => {
     if (!imageFile.value) fileInputRef.value?.click()
 }
@@ -133,10 +138,14 @@ const handleSubmit = async () => {
         }
         if (isEdit.value) {
             await goalStore.updateGoal(route.params.id as string, payload)
+            showToast('Goal updated', 'success')
         } else {
             await goalStore.createGoal(payload)
+            showToast('Goal added', 'success')
         }
         router.back()
+    } catch {
+        showToast('Failed to save goal')
     } finally {
         isSubmitting.value = false
     }

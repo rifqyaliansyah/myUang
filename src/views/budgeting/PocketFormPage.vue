@@ -56,7 +56,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import EmojiPickerSheet from '../components/EmojiPickerSheet.vue'
@@ -93,6 +93,11 @@ onMounted(async () => {
     }
 })
 
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
 const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
     amount.value = raw
@@ -111,10 +116,14 @@ const handleSubmit = async () => {
         }
         if (isEdit.value) {
             await pocketStore.updatePocket(route.params.id as string, payload)
+            showToast('Pocket updated', 'success')
         } else {
             await pocketStore.createPocket(payload)
+            showToast('Pocket added', 'success')
         }
         router.back()
+    } catch {
+        showToast('Failed to save pocket')
     } finally {
         isSubmitting.value = false
     }

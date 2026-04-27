@@ -79,7 +79,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner, toastController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { ellipsisVertical, addOutline } from 'ionicons/icons'
@@ -93,6 +93,11 @@ onMounted(() => pocketStore.fetchPockets())
 const showDeleteAlert = ref(false)
 const pocketToDelete = ref<Pocket | null>(null)
 
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
 const alertButtons = computed(() => [
     {
         text: 'No',
@@ -105,8 +110,14 @@ const alertButtons = computed(() => [
         cssClass: 'alert-btn-yes',
         handler: async () => {
             if (pocketToDelete.value) {
-                await pocketStore.deletePocket(pocketToDelete.value.id)
-                pocketToDelete.value = null
+                try {
+                    await pocketStore.deletePocket(pocketToDelete.value.id)
+                    showToast('Pocket deleted', 'success')
+                } catch {
+                    showToast('Failed to delete pocket')
+                } finally {
+                    pocketToDelete.value = null
+                }
             }
             showDeleteAlert.value = false
         },

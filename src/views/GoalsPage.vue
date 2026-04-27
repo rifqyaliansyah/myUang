@@ -81,7 +81,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner, toastController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { ellipsisVertical, addOutline, trophyOutline } from 'ionicons/icons'
@@ -95,6 +95,11 @@ onMounted(() => goalStore.fetchGoals())
 const showDeleteAlert = ref(false)
 const goalToDelete = ref<Goal | null>(null)
 
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
 const alertButtons = computed(() => [
     {
         text: 'No',
@@ -107,8 +112,14 @@ const alertButtons = computed(() => [
         cssClass: 'alert-btn-yes',
         handler: async () => {
             if (goalToDelete.value) {
-                await goalStore.deleteGoal(goalToDelete.value.id)
-                goalToDelete.value = null
+                try {
+                    await goalStore.deleteGoal(goalToDelete.value.id)
+                    showToast('Goal deleted', 'success')
+                } catch {
+                    showToast('Failed to delete goal')
+                } finally {
+                    goalToDelete.value = null
+                }
             }
             showDeleteAlert.value = false
         },
