@@ -51,7 +51,8 @@
                 </div>
 
                 <!-- Version -->
-                <div class="version-text">v1.0</div>
+                <div class="version-text">v0.0.1</div>
+                <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div>
 
             </div>
         </ion-content>
@@ -69,6 +70,7 @@ import { IonPage, IonContent, IonIcon, IonAlert } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import AppHeader from './components/AppHeader.vue'
 
+const currentYear = new Date().getFullYear()
 const showLogoutAlert = ref(false)
 
 const logoutButtons = computed(() => [
@@ -228,6 +230,14 @@ const handleLogOut = () => { showLogoutAlert.value = true }
     color: var(--color-black-60);
     margin-top: auto;
     padding-top: 24px;
+}
+
+.copyright-text {
+    text-align: center;
+    font-size: 12px;
+    font-weight: 400;
+    color: var(--color-black-60);
+    padding-top: 4px;
 }
 </style>
 
