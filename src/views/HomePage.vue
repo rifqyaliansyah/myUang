@@ -10,16 +10,18 @@
                     </div>
                     <div class="hero-actions">
                         <ion-icon :icon="notificationsOutline" class="notif-icon" @click="goToNotification" />
-                        <div class="avatar">
+                        <div class="avatar" @click="router.push('/profile')">
                             <img :src="avatarUrl" alt="avatar" />
                         </div>
                     </div>
                 </div>
                 <div class="hero-bottom">
-                    <div class="wallet-selector" id="wallet-trigger">
-                        <span class="wallet-label">{{ activeWallet?.name ?? 'Select Wallet' }}</span>
-                        <ion-icon :icon="chevronDownOutline" class="chevron-icon"
-                            :class="{ 'chevron-open': isDropdownOpen }" />
+                    <div class="wallet-selector-wrapper" id="wallet-trigger">
+                        <div class="wallet-selector">
+                            <span class="wallet-label">{{ activeWallet?.name ?? 'Select Wallet' }}</span>
+                            <ion-icon :icon="chevronDownOutline" class="chevron-icon"
+                                :class="{ 'chevron-open': isDropdownOpen }" />
+                        </div>
                     </div>
                     <div class="hero-balance">
                         <h2>IDR {{ activeWallet ? formatAmount(activeWallet.balance) : '0' }}</h2>
@@ -269,7 +271,7 @@ const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
 .hero-actions {
     display: flex;
     align-items: center;
-    gap: 12px;
+    gap: 16px;
 }
 
 .notif-icon {
@@ -609,5 +611,10 @@ const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
 
 .manage-icon {
     font-size: 18px;
+}
+
+.wallet-selector-wrapper {
+    width: fit-content;
+    cursor: pointer;
 }
 </style>
