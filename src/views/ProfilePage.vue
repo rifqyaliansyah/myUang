@@ -241,7 +241,7 @@ const handleLogOut = () => { showLogoutAlert.value = true }
 
 .menu-chevron {
     font-size: 20px;
-    color: var(--color-black-60);
+    color: var(--color-black-100);
 }
 
 /* Version */
