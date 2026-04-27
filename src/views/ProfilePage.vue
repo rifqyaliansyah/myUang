@@ -51,7 +51,7 @@
                 </div>
 
                 <!-- Version -->
-                <div class="version-text">v0.2.5</div>
+                <div class="version-text">v0.3.8</div>
                 <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div>
 
             </div>

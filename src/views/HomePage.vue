@@ -16,13 +16,32 @@
                     </div>
                 </div>
                 <div class="hero-bottom">
-                    <div class="wallet-selector">
-                        <span class="wallet-label">Main Wallet</span>
-                        <ion-icon :icon="chevronDownOutline" class="chevron-icon" />
+                    <div class="wallet-selector" id="wallet-trigger">
+                        <span class="wallet-label">{{ activeWallet?.name ?? 'Select Wallet' }}</span>
+                        <ion-icon :icon="chevronDownOutline" class="chevron-icon"
+                            :class="{ 'chevron-open': isDropdownOpen }" />
                     </div>
                     <div class="hero-balance">
-                        <h2>IDR 5.000.000</h2>
+                        <h2>IDR {{ activeWallet ? formatAmount(activeWallet.balance) : '0' }}</h2>
                     </div>
+
+                    <ion-popover trigger="wallet-trigger" trigger-action="click" :dismiss-on-select="true"
+                        :show-backdrop="true" side="bottom" alignment="start" class="wallet-dropdown"
+                        :style="popoverStyle" @willPresent="isDropdownOpen = true"
+                        @willDismiss="isDropdownOpen = false">
+                        <ion-content class="popover-scroll">
+                            <div v-for="wallet in walletStore.wallets" :key="wallet.id" class="dropdown-item"
+                                :class="{ 'dropdown-item--active': wallet.is_active }" @click="selectWallet(wallet)">
+                                <span class="dropdown-name">{{ wallet.name }}</span>
+                                <span class="dropdown-balance">IDR {{ formatAmount(wallet.balance) }}</span>
+                            </div>
+                            <div class="dropdown-divider"></div>
+                            <div class="dropdown-item dropdown-manage" @click="router.push('/wallet')">
+                                <ion-icon :icon="walletOutline" class="manage-icon" />
+                                <span>Manage Wallets</span>
+                            </div>
+                        </ion-content>
+                    </ion-popover>
                 </div>
             </div>
 
@@ -142,21 +161,43 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton } from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton, IonPopover } from '@ionic/vue'
 import { useRouter } from 'vue-router'
+import { useWalletStore } from '@/stores/wallet'
+import { onMounted, computed, ref } from 'vue'
 import {
-    chevronDownOutline,
-    notificationsOutline,
-    caretUpOutline,
-    caretDownOutline,
-    addOutline,
+    chevronDownOutline, notificationsOutline,
+    caretUpOutline, caretDownOutline, addOutline, checkmarkOutline, walletOutline
 } from 'ionicons/icons'
 
 const router = useRouter()
-
+const walletStore = useWalletStore()
+const isDropdownOpen = ref(false)
 const goToNotification = () => {
     router.push('/notification')
 }
+const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
+
+const selectWallet = async (wallet: any) => {
+    if (!wallet.is_active) {
+        await walletStore.setActiveWallet(wallet.id)
+        await walletStore.fetchWallets()
+    }
+}
+
+const popoverStyle = computed(() => {
+    const screenWidth = window.innerWidth
+    const appWidth = 480
+    if (screenWidth <= 768) return ''
+    const offset = -((screenWidth - appWidth) / 2) + 16
+    return `--offset-x: ${offset}px;`
+})
+
+onMounted(async () => {
+    await walletStore.fetchWallets()
+})
+
+const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
 </script>
 
 <style scoped>
@@ -263,6 +304,11 @@ const goToNotification = () => {
 .chevron-icon {
     font-size: 16px;
     color: rgba(255, 255, 255, 0.9);
+    transition: transform 0.2s ease;
+}
+
+.chevron-open {
+    transform: rotate(180deg);
 }
 
 .hero-balance h2 {
@@ -482,5 +528,73 @@ const goToNotification = () => {
 .fab-icon {
     font-size: 32px;
     color: var(--color-white);
+}
+
+.wallet-dropdown {
+    --width: 240px;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --offset-y: 8px;
+}
+
+.wallet-dropdown .popover-scroll {
+    --background: #ffffff;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--color-black-100);
+}
+
+.dropdown-item:active {
+    background: var(--color-bg-4);
+}
+
+.dropdown-item--active {
+    background: #EEF4FF;
+}
+
+.dropdown-item--active .dropdown-name {
+    color: #3077E3;
+    font-weight: 700;
+}
+
+.dropdown-item--active .dropdown-balance {
+    color: #3077E3;
+}
+
+.dropdown-name {
+    font-weight: 500;
+}
+
+.dropdown-balance {
+    font-size: 13px;
+    color: var(--color-black-60);
+}
+
+.dropdown-check {
+    color: #3077E3;
+    font-size: 16px;
+}
+
+.dropdown-divider {
+    height: 0.9px;
+    background: var(--color-black-20);
+}
+
+.dropdown-manage {
+    gap: 8px;
+    justify-content: flex-start;
+    color: #3077E3;
+    font-weight: 500;
+}
+
+.manage-icon {
+    font-size: 18px;
 }
 </style>

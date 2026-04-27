@@ -29,9 +29,10 @@
 
                 <!-- Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!walletName || !amount"
+                    <ion-button expand="block" class="save-btn" :disabled="!walletName || !amount || loading"
                         @click="handleSubmit">
-                        {{ isEdit ? 'Edit Wallet' : 'Add Wallet' }}
+                        <ion-spinner v-if="loading" name="crescent" />
+                        <span v-else>{{ isEdit ? 'Edit Wallet' : 'Add Wallet' }}</span>
                     </ion-button>
                 </div>
 
@@ -42,35 +43,44 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton } from '@ionic/vue'
-import { useRoute } from 'vue-router'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import { useWalletStore } from '@/stores/wallet'
 
 const route = useRoute()
+const router = useRouter()
+const walletStore = useWalletStore()
 
 const isEdit = computed(() => route.name === 'Edit Wallet')
 
 const walletName = ref('')
 const amount = ref('')
 const displayAmount = ref('')
+const loading = ref(false)
 
-// Simulasi data static untuk edit
-const staticWallets = [
-    { id: 1, name: 'Main Wallet', balance: 5000000 },
-    { id: 2, name: 'Second Wallet', balance: 8000000 },
-]
-
-onMounted(() => {
+onMounted(async () => {
     if (isEdit.value) {
-        const id = Number(route.params.id)
-        const wallet = staticWallets.find(w => w.id === id)
+        if (walletStore.wallets.length === 0) {
+            await walletStore.fetchWallets()
+        }
+        const id = route.params.id as string
+        const wallet = walletStore.wallets.find(w => w.id === id)
         if (wallet) {
             walletName.value = wallet.name
             amount.value = String(wallet.balance)
-            displayAmount.value = wallet.balance.toLocaleString('id-ID')
+            displayAmount.value = Number(wallet.balance).toLocaleString('id-ID')
+        } else {
+            showToast('Wallet not found')
+            router.replace('/wallet')
         }
     }
 })
+
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
 
 const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
@@ -78,11 +88,24 @@ const handleAmountInput = (e: any) => {
     displayAmount.value = raw ? Number(raw).toLocaleString('id-ID') : ''
 }
 
-const handleSubmit = () => {
-    if (isEdit.value) {
-        console.log('Update Wallet', { id: route.params.id, walletName: walletName.value, amount: amount.value })
-    } else {
-        console.log('Add Wallet', { walletName: walletName.value, amount: amount.value })
+const handleSubmit = async () => {
+    loading.value = true
+    try {
+        const payload = { name: walletName.value, balance: Number(amount.value) }
+
+        if (isEdit.value) {
+            await walletStore.updateWallet(route.params.id as string, payload)
+            showToast('Wallet updated', 'success')
+        } else {
+            await walletStore.createWallet(payload)
+            showToast('Wallet added', 'success')
+        }
+
+        router.replace('/wallet')
+    } catch {
+        showToast('Failed to save wallet')
+    } finally {
+        loading.value = false
     }
 }
 </script>
@@ -115,7 +138,6 @@ const handleSubmit = () => {
     gap: 16px;
 }
 
-/* Form Group */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -130,7 +152,6 @@ const handleSubmit = () => {
     color: var(--color-black-100);
 }
 
-/* Input */
 .input-wrapper {
     display: flex;
     align-items: center;
@@ -154,7 +175,6 @@ const handleSubmit = () => {
     flex: 1;
 }
 
-/* Amount */
 .amount-wrapper {
     padding: 0;
     overflow: hidden;
@@ -182,7 +202,6 @@ const handleSubmit = () => {
     --padding-bottom: 12px;
 }
 
-/* Footer */
 .footer {
     padding-top: 16px;
 }

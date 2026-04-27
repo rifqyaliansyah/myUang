@@ -5,47 +5,55 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Wallet Card -->
-                <div class="wallet-card" :class="wallet.isActive ? 'wallet-card--active' : 'wallet-card--inactive'"
-                    v-for="wallet in wallets" :key="wallet.id">
-                    <div class="wallet-card-header">
-                        <span class="wallet-name">{{ wallet.name }}</span>
-                        <ion-button fill="clear" class="wallet-menu-btn" :id="`wallet-menu-${wallet.id}`">
-                            <ion-icon :icon="ellipsisVertical" />
-                        </ion-button>
+                <template v-if="walletStore.loading">
+                    <div class="loading-wrapper">
+                        <ion-spinner name="crescent" />
                     </div>
-                    <div class="wallet-balance">IDR {{ formatAmount(wallet.balance) }}</div>
-                    <div class="wallet-status" v-if="wallet.isActive">
-                        <span>This wallet is currently used</span>
-                        <img src="/assets/icon/circle-check.svg" class="status-icon" />
-                    </div>
+                </template>
 
-                    <!-- Popover -->
-                    <ion-popover :trigger="`wallet-menu-${wallet.id}`" side="bottom" alignment="end"
-                        trigger-action="click" :dismiss-on-select="true" :show-backdrop="false" :style="popoverStyle"
-                        class="wallet-popover">
-                        <ion-content class="popover-content">
-                            <div class="menu-item" @click="handleEdit(wallet)">
-                                <span>Edit</span>
-                            </div>
-                            <template v-if="!wallet.isActive">
-                                <div class="menu-divider"></div>
-                                <div class="menu-item" @click="handleUseWallet(wallet)">
-                                    <span>Use this wallet</span>
+                <template v-else>
+                    <!-- Wallet Card -->
+                    <div class="wallet-card" :class="wallet.is_active ? 'wallet-card--active' : 'wallet-card--inactive'"
+                        v-for="wallet in walletStore.wallets" :key="wallet.id">
+                        <div class="wallet-card-header">
+                            <span class="wallet-name">{{ wallet.name }}</span>
+                            <ion-button fill="clear" class="wallet-menu-btn" :id="`wallet-menu-${wallet.id}`">
+                                <ion-icon :icon="ellipsisVertical" />
+                            </ion-button>
+                        </div>
+                        <div class="wallet-balance">IDR {{ formatAmount(wallet.balance) }}</div>
+                        <div class="wallet-status" v-if="wallet.is_active">
+                            <span>This wallet is currently used</span>
+                            <img src="/assets/icon/circle-check.svg" class="status-icon" />
+                        </div>
+
+                        <!-- Popover -->
+                        <ion-popover :trigger="`wallet-menu-${wallet.id}`" side="bottom" alignment="end"
+                            trigger-action="click" :dismiss-on-select="true" :show-backdrop="false"
+                            :style="popoverStyle" class="wallet-popover">
+                            <ion-content class="popover-content">
+                                <div class="menu-item" @click="handleEdit(wallet)">
+                                    <span>Edit</span>
                                 </div>
-                            </template>
-                            <div class="menu-divider"></div>
-                            <div class="menu-item menu-item--danger" @click="handleDelete(wallet)">
-                                <span>Delete</span>
-                            </div>
-                        </ion-content>
-                    </ion-popover>
-                </div>
+                                <template v-if="!wallet.is_active">
+                                    <div class="menu-divider"></div>
+                                    <div class="menu-item" @click="handleUseWallet(wallet)">
+                                        <span>Use this wallet</span>
+                                    </div>
+                                </template>
+                                <div class="menu-divider"></div>
+                                <div class="menu-item menu-item--danger" @click="handleDelete(wallet)">
+                                    <span>Delete</span>
+                                </div>
+                            </ion-content>
+                        </ion-popover>
+                    </div>
 
-                <!-- Add New Wallet -->
-                <div class="add-wallet-btn" @click="handleAddWallet">
-                    <span>Add New Wallet</span>
-                </div>
+                    <!-- Add New Wallet -->
+                    <div class="add-wallet-btn" @click="handleAddWallet">
+                        <span>Add New Wallet</span>
+                    </div>
+                </template>
 
             </div>
         </ion-content>
@@ -58,18 +66,28 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonSpinner, toastController } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { ellipsisVertical } from 'ionicons/icons'
+import { useWalletStore } from '@/stores/wallet'
+import type { Wallet } from '@/stores/wallet'
 
-const wallets = ref([
-    { id: 1, name: 'Main Wallet', balance: 5000000, isActive: true },
-    { id: 2, name: 'Second Wallet', balance: 8000000, isActive: false },
-])
+const router = useRouter()
+const walletStore = useWalletStore()
 
 const showDeleteAlert = ref(false)
-const walletToDelete = ref<any>(null)
+const walletToDelete = ref<Wallet | null>(null)
+
+onMounted(async () => {
+    await walletStore.fetchWallets()
+})
+
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
 
 const alertButtons = computed(() => [
     {
@@ -81,12 +99,18 @@ const alertButtons = computed(() => [
     {
         text: 'Yes',
         cssClass: 'alert-btn-yes',
-        handler: () => {
+        handler: async () => {
             if (walletToDelete.value) {
-                wallets.value = wallets.value.filter(w => w.id !== walletToDelete.value.id)
-                walletToDelete.value = null
+                try {
+                    await walletStore.deleteWallet(walletToDelete.value.id)
+                    showToast('Wallet deleted', 'success')
+                } catch {
+                    showToast('Failed to delete wallet')
+                } finally {
+                    walletToDelete.value = null
+                    showDeleteAlert.value = false
+                }
             }
-            showDeleteAlert.value = false
         },
     },
 ])
@@ -101,24 +125,29 @@ const popoverStyle = computed(() => {
 })
 
 const formatAmount = (value: number) => {
-    return value.toLocaleString('id-ID')
+    return Number(value).toLocaleString('id-ID')
 }
 
-const handleEdit = (wallet: any) => {
-    console.log('Edit', wallet.name)
+const handleEdit = (wallet: Wallet) => {
+    router.push(`/edit-wallet/${wallet.id}`)
 }
 
-const handleUseWallet = (wallet: any) => {
-    wallets.value = wallets.value.map(w => ({ ...w, isActive: w.id === wallet.id }))
+const handleUseWallet = async (wallet: Wallet) => {
+    try {
+        await walletStore.setActiveWallet(wallet.id)
+        await walletStore.fetchWallets()
+    } catch {
+        showToast('Failed to update active wallet')
+    }
 }
 
-const handleDelete = (wallet: any) => {
+const handleDelete = (wallet: Wallet) => {
     walletToDelete.value = wallet
     showDeleteAlert.value = true
 }
 
 const handleAddWallet = () => {
-    console.log('Add new wallet')
+    router.push('/add-wallet')
 }
 </script>
 
@@ -140,6 +169,12 @@ const handleAddWallet = () => {
     flex-direction: column;
     padding: 16px;
     gap: 12px;
+}
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    padding-top: 48px;
 }
 
 /* Wallet Card Base */
@@ -289,7 +324,6 @@ const handleAddWallet = () => {
 }
 </style>
 
-<!-- Alert global style (tidak bisa scoped) -->
 <style>
 .delete-alert {
     --backdrop-opacity: 0.4;
@@ -337,7 +371,6 @@ const handleAddWallet = () => {
 
 .delete-alert .alert-btn-no {
     flex: 1;
-    width: 147.5px !important;
     height: 48px !important;
     border: 1.5px solid #3077E3 !important;
     border-radius: 8px !important;
@@ -345,35 +378,12 @@ const handleAddWallet = () => {
     font-weight: 600 !important;
     font-size: 16px !important;
     letter-spacing: -0.02em;
-    line-height: 24px;
     text-transform: none !important;
     justify-content: center !important;
 }
 
 .delete-alert .alert-btn-yes {
     flex: 1;
-    width: 147.5px !important;
-    height: 48px !important;
-    background: #3077E3 !important;
-    border-radius: 8px !important;
-    color: #ffffff !important;
-    font-weight: 600 !important;
-    font-size: 16px !important;
-    letter-spacing: -0.02em;
-    line-height: 24px;
-    text-transform: none !important;
-    justify-content: center !important;
-}
-
-.delete-alert .alert-button-inner {
-    justify-content: center !important;
-}
-</style>
-
-<style>
-.delete-alert .alert-btn-yes {
-    flex: 1;
-    width: 147.5px !important;
     height: 48px !important;
     background: var(--color-red) !important;
     border-radius: 8px !important;
@@ -381,8 +391,11 @@ const handleAddWallet = () => {
     font-weight: 600 !important;
     font-size: 16px !important;
     letter-spacing: -0.02em;
-    line-height: 24px;
     text-transform: none !important;
+    justify-content: center !important;
+}
+
+.delete-alert .alert-button-inner {
     justify-content: center !important;
 }
 </style>
