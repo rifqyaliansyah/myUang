@@ -8,19 +8,18 @@
                 <!-- Profile Info -->
                 <div class="profile-section">
                     <div class="avatar">
-                        <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" />
+                        <img :src="avatarUrl" alt="avatar" />
                     </div>
                     <div class="profile-info">
-                        <div class="profile-name">Kevin Tan</div>
-                        <div class="profile-email">kevintan@gmail.com</div>
+                        <div class="profile-name">{{ userName }}</div>
+                        <div class="profile-email">{{ userEmail }}</div>
                         <div class="edit-profile" @click="handleEditProfile">Edit Profile</div>
                     </div>
                 </div>
 
                 <!-- Quote -->
-                <div class="quote-section">
-                    <p class="quote-text">"A budget is telling your money where to go instead of wondering where it
-                        went."</p>
+                <div class="quote-section" v-if="userQuotes">
+                    <p class="quote-text">"{{ userQuotes }}"</p>
                 </div>
 
                 <!-- Divider -->
@@ -51,7 +50,7 @@
                 </div>
 
                 <!-- Version -->
-                <div class="version-text">v0.3.8</div>
+                <div class="version-text">v0.4.9</div>
                 <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div>
 
             </div>
@@ -65,18 +64,35 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonIcon, IonAlert } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from './components/AppHeader.vue'
+import profileService from '@/services/profile.service'
+
+const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
 
 const router = useRouter()
 const auth = useAuthStore()
 
 const currentYear = new Date().getFullYear()
 const showLogoutAlert = ref(false)
+
+const avatarUrl = computed(() => auth.user?.avatar_url || DEFAULT_AVATAR)
+const userName = computed(() => auth.user?.name || '')
+const userEmail = computed(() => auth.user?.email || '')
+const userQuotes = computed(() => auth.user?.quotes || '')
+
+onMounted(async () => {
+    try {
+        const res = await profileService.getProfile()
+        auth.setUser(res.data.data)
+    } catch {
+        // gunakan data dari localStorage jika gagal
+    }
+})
 
 const logoutButtons = computed(() => [
     {
@@ -140,7 +156,7 @@ const handleLogOut = () => { showLogoutAlert.value = true }
     border-radius: 50%;
     overflow: hidden;
     flex-shrink: 0;
-    border: 2px solid var(--color-bg-2);
+    border: 1px solid #3077E3;
 }
 
 .avatar img {

@@ -10,7 +10,7 @@ export const useAuthStore = defineStore('auth', () => {
     const pinVerified = ref<boolean>(sessionStorage.getItem('pin_verified') === 'true')
     const sessionChecked = ref<boolean>(false)
 
-    const user = ref<{ id: string; name: string; email: string } | null>(
+    const user = ref<{ id: string; name: string; email: string; avatar_url?: string; quotes?: string } | null>(
         JSON.parse(localStorage.getItem('user') || 'null')
     )
 
@@ -59,7 +59,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
 
     async function initializeAuth() {
-        if (sessionChecked.value) return  
+        if (sessionChecked.value) return
 
         try {
             if (accessToken.value && isPinSet.value && !pinVerified.value && refreshToken.value) {

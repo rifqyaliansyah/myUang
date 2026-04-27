@@ -11,7 +11,7 @@
                     <div class="hero-actions">
                         <ion-icon :icon="notificationsOutline" class="notif-icon" @click="goToNotification" />
                         <div class="avatar">
-                            <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" />
+                            <img :src="avatarUrl" alt="avatar" />
                         </div>
                     </div>
                 </div>
@@ -164,6 +164,8 @@
 import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton, IonPopover } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/stores/wallet'
+import { useAuthStore } from '@/stores/auth'
+import profileService from '@/services/profile.service'
 import { onMounted, computed, ref } from 'vue'
 import {
     chevronDownOutline, notificationsOutline,
@@ -172,7 +174,12 @@ import {
 
 const router = useRouter()
 const walletStore = useWalletStore()
+const auth = useAuthStore()
 const isDropdownOpen = ref(false)
+
+const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
+const avatarUrl = computed(() => auth.user?.avatar_url || DEFAULT_AVATAR)
+
 const goToNotification = () => {
     router.push('/notification')
 }
@@ -195,6 +202,12 @@ const popoverStyle = computed(() => {
 
 onMounted(async () => {
     await walletStore.fetchWallets()
+    try {
+        const res = await profileService.getProfile()
+        auth.setUser(res.data.data)
+    } catch {
+        // fallback ke localStorage
+    }
 })
 
 const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')

@@ -170,6 +170,7 @@ const handleAddPocket = () => router.push('/add-pocket')
     flex-direction: column;
     padding: 16px;
     gap: 12px;
+    min-height: 100%;
 }
 
 /* Pocket Card */

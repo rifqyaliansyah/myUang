@@ -10,10 +10,12 @@
                     <!-- Avatar -->
                     <div class="avatar-section">
                         <div class="avatar-wrapper">
-                            <img src="https://umj.ac.id/storage/2024/10/parb.jpg" alt="avatar" class="avatar-img" />
-                            <div class="avatar-edit-btn" @click="handleChangePhoto">
+                            <img :src="previewAvatar" alt="avatar" class="avatar-img" />
+                            <div class="avatar-edit-btn" @click="triggerFilePicker">
                                 <img src="/assets/icon/pen-solid.svg" class="edit-icon" />
                             </div>
+                            <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp"
+                                style="display:none" @change="handleFileChange" />
                         </div>
                     </div>
 
@@ -25,11 +27,12 @@
                         </div>
                     </div>
 
-                    <!-- Email -->
+                    <!-- Email (disabled) -->
                     <div class="form-group">
                         <ion-label>Email</ion-label>
-                        <div class="input-wrapper">
-                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input" />
+                        <div class="input-wrapper input-wrapper--disabled">
+                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input"
+                                :disabled="true" />
                         </div>
                     </div>
 
@@ -45,8 +48,9 @@
 
                 <!-- Save Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!name || !email" @click="handleSave">
-                        Save
+                    <ion-button expand="block" class="save-btn" :disabled="!name || isSubmitting" @click="handleSave">
+                        <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>Save</span>
                     </ion-button>
                 </div>
 
@@ -56,20 +60,66 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
+import { ref, onMounted } from 'vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import { useAuthStore } from '@/stores/auth'
+import profileService from '@/services/profile.service'
 
-const name = ref('Kevin Tan')
-const email = ref('kevintan@gmail.com')
-const quotes = ref('"A budget is telling your money where to go instead of wondering where it went."')
+const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
 
-const handleChangePhoto = () => {
-    console.log('Change photo')
+const router = useRouter()
+const auth = useAuthStore()
+
+const name = ref('')
+const email = ref('')
+const quotes = ref('')
+const avatarUrl = ref(DEFAULT_AVATAR)
+const previewAvatar = ref(DEFAULT_AVATAR)
+const fileInputRef = ref<HTMLInputElement | null>(null)
+const isSubmitting = ref(false)
+
+onMounted(() => {
+    name.value = auth.user?.name || ''
+    email.value = auth.user?.email || ''
+    quotes.value = auth.user?.quotes || ''
+    avatarUrl.value = auth.user?.avatar_url || DEFAULT_AVATAR
+    previewAvatar.value = auth.user?.avatar_url || DEFAULT_AVATAR
+})
+
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
 }
 
-const handleSave = () => {
-    console.log('Save', { name: name.value, email: email.value, quotes: quotes.value })
+const triggerFilePicker = () => {
+    fileInputRef.value?.click()
+}
+
+const handleFileChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) {
+        previewAvatar.value = URL.createObjectURL(file)
+    }
+}
+
+const handleSave = async () => {
+    if (!name.value) return
+    isSubmitting.value = true
+    try {
+        const res = await profileService.updateProfile({
+            name: name.value,
+            quotes: quotes.value,
+        })
+        auth.setUser(res.data.data)
+        showToast('Profile updated', 'success')
+        router.back()
+    } catch {
+        showToast('Failed to update profile')
+    } finally {
+        isSubmitting.value = false
+    }
 }
 </script>
 
@@ -118,7 +168,7 @@ const handleSave = () => {
     height: 80px;
     border-radius: 50%;
     object-fit: cover;
-    border: 2px solid var(--color-bg-2);
+    border: 1px solid #3077E3;
 }
 
 .avatar-edit-btn {
