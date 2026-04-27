@@ -5,53 +5,62 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Goal Card -->
-                <div class="goal-card" v-for="goal in goals" :key="goal.id">
-                    <div class="goal-card-header">
-                        <div class="goal-info">
-                            <div class="goal-name">{{ goal.name }}</div>
-                            <div class="goal-desc">{{ goal.description }}</div>
-                        </div>
-                        <ion-button fill="clear" class="goal-menu-btn" :id="`goal-menu-${goal.id}`">
-                            <ion-icon :icon="ellipsisVertical" />
-                        </ion-button>
-                    </div>
-
-                    <div class="goal-amount">IDR {{ formatAmount(goal.reached) }}</div>
-
-                    <div class="goal-progress-wrapper">
-                        <div class="goal-progress-bar">
-                            <div class="goal-progress-fill" :style="{ width: progressPercent(goal) + '%' }" />
-                        </div>
-                    </div>
-
-                    <div class="goal-reached">
-                        IDR {{ formatAmount(goal.reached) }} of IDR {{ formatAmount(goal.limit) }} reached
-                    </div>
-
-                    <!-- Popover -->
-                    <ion-popover :trigger="`goal-menu-${goal.id}`" side="bottom" alignment="end" trigger-action="click"
-                        :dismiss-on-select="true" :show-backdrop="false" :style="popoverStyle" class="goal-popover">
-                        <ion-content class="popover-content">
-                            <div class="menu-item" @click="handleDetails(goal)">
-                                <span>Details</span>
-                            </div>
-                            <div class="menu-divider"></div>
-                            <div class="menu-item" @click="handleEdit(goal)">
-                                <span>Edit</span>
-                            </div>
-                            <div class="menu-divider"></div>
-                            <div class="menu-item menu-item--danger" @click="handleDelete(goal)">
-                                <span>Delete</span>
-                            </div>
-                        </ion-content>
-                    </ion-popover>
+                <!-- Loading -->
+                <div v-if="goalStore.loading" class="loading-wrapper">
+                    <ion-spinner name="crescent" />
                 </div>
 
-                <!-- Add New Goal -->
-                <!-- <div class="add-goal-btn" @click="handleAddGoal">
-                    <span>Add New Goal</span>
-                </div> -->
+                <template v-else>
+                    <!-- Empty State -->
+                    <div v-if="goalStore.goals.length === 0" class="empty-wrapper">
+                        <ion-icon :icon="trophyOutline" class="empty-icon" />
+                        <p class="empty-text">No goals yet for now, please click the '+' to create a new goal.</p>
+                    </div>
+
+                    <!-- Goal Card -->
+                    <div v-else class="goal-card" v-for="goal in goalStore.goals" :key="goal.id">
+                        <div class="goal-card-header">
+                            <div class="goal-info">
+                                <div class="goal-name">{{ goal.name }}</div>
+                                <div class="goal-desc">{{ goal.description }}</div>
+                            </div>
+                            <ion-button fill="clear" class="goal-menu-btn" :id="`goal-menu-${goal.id}`">
+                                <ion-icon :icon="ellipsisVertical" />
+                            </ion-button>
+                        </div>
+
+                        <div class="goal-amount">IDR {{ formatAmount(goal.reached) }}</div>
+
+                        <div class="goal-progress-wrapper">
+                            <div class="goal-progress-bar">
+                                <div class="goal-progress-fill" :style="{ width: progressPercent(goal) + '%' }" />
+                            </div>
+                        </div>
+
+                        <div class="goal-reached">
+                            IDR {{ formatAmount(goal.reached) }} of IDR {{ formatAmount(goal.target_amount) }} reached
+                        </div>
+
+                        <!-- Popover -->
+                        <ion-popover :trigger="`goal-menu-${goal.id}`" side="bottom" alignment="end"
+                            trigger-action="click" :dismiss-on-select="true" :show-backdrop="false"
+                            :style="popoverStyle" class="goal-popover">
+                            <ion-content class="popover-content">
+                                <div class="menu-item" @click="handleDetails(goal)">
+                                    <span>Details</span>
+                                </div>
+                                <div class="menu-divider"></div>
+                                <div class="menu-item" @click="handleEdit(goal)">
+                                    <span>Edit</span>
+                                </div>
+                                <div class="menu-divider"></div>
+                                <div class="menu-item menu-item--danger" @click="handleDelete(goal)">
+                                    <span>Delete</span>
+                                </div>
+                            </ion-content>
+                        </ion-popover>
+                    </div>
+                </template>
 
             </div>
         </ion-content>
@@ -71,18 +80,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
-import { ellipsisVertical, addOutline } from 'ionicons/icons'
+import { ellipsisVertical, addOutline, trophyOutline } from 'ionicons/icons'
+import { useGoalStore, type Goal } from '@/stores/goal'
 
-const goals = ref([
-    { id: 1, name: 'Buy Jacket', description: 'New stylish jacket', reached: 200000, limit: 500000 },
-    { id: 2, name: 'Vacation Bali', description: 'Holiday trip to Bali', reached: 1500000, limit: 5000000 },
-])
+const router = useRouter()
+const goalStore = useGoalStore()
+
+onMounted(() => goalStore.fetchGoals())
 
 const showDeleteAlert = ref(false)
-const goalToDelete = ref<any>(null)
+const goalToDelete = ref<Goal | null>(null)
 
 const alertButtons = computed(() => [
     {
@@ -94,9 +105,9 @@ const alertButtons = computed(() => [
     {
         text: 'Yes',
         cssClass: 'alert-btn-yes',
-        handler: () => {
+        handler: async () => {
             if (goalToDelete.value) {
-                goals.value = goals.value.filter(g => g.id !== goalToDelete.value.id)
+                await goalStore.deleteGoal(goalToDelete.value.id)
                 goalToDelete.value = null
             }
             showDeleteAlert.value = false
@@ -113,20 +124,23 @@ const popoverStyle = computed(() => {
     return `--offset-x: ${offset}px;`
 })
 
-const formatAmount = (value: number) => value.toLocaleString('id-ID')
-
-const progressPercent = (goal: any) => {
-    if (!goal.limit) return 0
-    return Math.min((goal.reached / goal.limit) * 100, 100)
+const formatAmount = (value: number) => {
+    const num = Number(value) || 0
+    return Math.floor(num).toLocaleString('id-ID')
 }
 
-const handleDetails = (goal: any) => console.log('Details', goal.name)
-const handleEdit = (goal: any) => console.log('Edit', goal.name)
-const handleDelete = (goal: any) => {
+const progressPercent = (goal: Goal) => {
+    if (!goal.target_amount) return 0
+    return Math.min((goal.reached / goal.target_amount) * 100, 100)
+}
+
+const handleDetails = (goal: Goal) => router.push(`/detail-goals/${goal.id}`)
+const handleEdit = (goal: Goal) => router.push(`/edit-goals/${goal.id}`)
+const handleDelete = (goal: Goal) => {
     goalToDelete.value = goal
     showDeleteAlert.value = true
 }
-const handleAddGoal = () => console.log('Add new goal')
+const handleAddGoal = () => router.push('/add-goals')
 </script>
 
 <style scoped>
@@ -147,6 +161,7 @@ const handleAddGoal = () => console.log('Add new goal')
     flex-direction: column;
     padding: 16px;
     gap: 12px;
+    min-height: 100%;
 }
 
 /* Goal Card */
@@ -393,6 +408,36 @@ const handleAddGoal = () => console.log('Add new goal')
 
 .delete-alert .alert-button-inner {
     justify-content: center !important;
+}
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+.empty-wrapper {
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 12px;
+    text-align: center;
+}
+
+.empty-icon {
+    font-size: 64px;
+    color: var(--color-black-40);
+}
+
+.empty-text {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--color-black-60);
+    letter-spacing: -0.02em;
+    margin: 0;
 }
 </style>
 

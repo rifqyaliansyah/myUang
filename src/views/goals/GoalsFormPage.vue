@@ -5,7 +5,6 @@
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="form-content">
 
                     <!-- Goals Name -->
@@ -35,23 +34,30 @@
                         </div>
                     </div>
 
-                    <!-- Attachment -->
+                   <!-- Attachment -->
                     <div class="form-group">
-                        <div class="attachment-wrapper" @click="addAttachment">
-                            <ion-icon :icon="documentOutline" class="attachment-icon" />
-                            <span class="attachment-label">Add Attachment</span>
+                        <div class="attachment-wrapper" @click="triggerFilePicker">
+                            <ion-icon :icon="imageFile ? closeOutline : documentOutline" class="attachment-icon"
+                                :class="{ 'attachment-icon--filled': imageFile }"
+                                @click.stop="imageFile ? clearFile() : undefined" />
+                            <span class="attachment-label" :class="{ 'attachment-label--filled': imageFile }">
+                                {{ imageFile ? imageFile.name : 'Add Attachment' }}
+                            </span>
                         </div>
+                        <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp"
+                            style="display:none" @change="handleFileChange" />
                     </div>
 
                 </div>
 
                 <!-- Save Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!name || !amount" @click="handleSubmit">
-                        {{ isEdit ? 'Save' : 'Add Goal' }}
+                    <ion-button expand="block" class="save-btn" :disabled="!name || !amount || isSubmitting"
+                        @click="handleSubmit">
+                        <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>{{ isEdit ? 'Save' : 'Add Goal' }}</span>
                     </ion-button>
                 </div>
-
             </div>
         </ion-content>
     </ion-page>
@@ -59,37 +65,55 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
-import { useRoute } from 'vue-router'
-import { documentOutline } from 'ionicons/icons'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner } from '@ionic/vue'
+import { useRoute, useRouter } from 'vue-router'
+import { documentOutline, closeOutline } from 'ionicons/icons'
 import AppHeader from '../components/AppHeader.vue'
+import { useGoalStore } from '@/stores/goal'
 
 const route = useRoute()
+const router = useRouter()
+const goalStore = useGoalStore()
 
 const isEdit = computed(() => route.name === 'Edit Goals')
+const isSubmitting = ref(false)
 
 const name = ref('')
 const amount = ref('')
 const displayAmount = ref('')
 const description = ref('')
+const imageFile = ref<File | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
-const staticGoals = [
-    { id: 1, name: 'Beli Motor', balance: 15000000, description: 'Honda CB150R' },
-    { id: 2, name: 'Liburan', balance: 5000000, description: 'Bali trip' },
-]
-
-onMounted(() => {
+onMounted(async () => {
     if (isEdit.value) {
-        const id = Number(route.params.id)
-        const goal = staticGoals.find(g => g.id === id)
+        let goal = goalStore.goals.find(g => g.id === route.params.id)
+        if (!goal) {
+            await goalStore.fetchGoals()
+            goal = goalStore.goals.find(g => g.id === route.params.id)
+        }
         if (goal) {
             name.value = goal.name
-            amount.value = String(goal.balance)
-            displayAmount.value = goal.balance.toLocaleString('id-ID')
+            amount.value = String(goal.target_amount)
+            displayAmount.value = Math.floor(Number(goal.target_amount)).toLocaleString('id-ID')
             description.value = goal.description
         }
     }
 })
+
+const triggerFilePicker = () => {
+    if (!imageFile.value) fileInputRef.value?.click()
+}
+
+const handleFileChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) imageFile.value = file
+}
+
+const clearFile = () => {
+    imageFile.value = null
+    if (fileInputRef.value) fileInputRef.value.value = ''
+}
 
 const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
@@ -97,15 +121,24 @@ const handleAmountInput = (e: any) => {
     displayAmount.value = raw ? Number(raw).toLocaleString('id-ID') : ''
 }
 
-const addAttachment = () => {
-    console.log('Add attachment')
-}
-
-const handleSubmit = () => {
-    if (isEdit.value) {
-        console.log('Update Goals', { id: route.params.id, name: name.value, amount: amount.value, description: description.value })
-    } else {
-        console.log('Add Goals', { name: name.value, amount: amount.value, description: description.value })
+const handleSubmit = async () => {
+    if (!name.value || !amount.value) return
+    isSubmitting.value = true
+    try {
+        const payload = {
+            name: name.value,
+            target_amount: Number(amount.value),
+            description: description.value,
+            image: imageFile.value,
+        }
+        if (isEdit.value) {
+            await goalStore.updateGoal(route.params.id as string, payload)
+        } else {
+            await goalStore.createGoal(payload)
+        }
+        router.back()
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>
@@ -276,5 +309,18 @@ const handleSubmit = () => {
 
 .save-btn:not([disabled]) {
     --background: #3077E3;
+}
+
+.attachment-icon--filled {
+    color: var(--color-black-100);
+}
+
+.attachment-label--filled {
+    color: var(--color-black-100);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
 }
 </style>
