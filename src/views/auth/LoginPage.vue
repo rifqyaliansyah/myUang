@@ -73,26 +73,66 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import {
-    IonPage,
-    IonContent,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonIcon,
-} from '@ionic/vue'
+import { useRouter } from 'vue-router'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
+import { GoogleAuth } from '@codetrix-studio/capacitor-google-auth'
+import authService from '@/services/auth.service'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
 
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
 
-const handleLogin = () => {
-    // handle login logic
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
 }
 
-const loginWithGoogle = () => {
-    // handle google login
+const handleLogin = async () => {
+    const loading = await loadingController.create({ message: 'Logging in...' })
+    await loading.present()
+
+    try {
+        const res = await authService.login({ email: email.value, password: password.value })
+        const { user, tempToken, isPinSet } = res.data.data
+
+        auth.setUser(user)
+        auth.setTempToken(tempToken)
+        auth.setIsPinSet(isPinSet)
+
+        router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
+    } catch (err: any) {
+        showToast(err.response?.data?.message || 'Login failed')
+    } finally {
+        await loading.dismiss()
+    }
+}
+
+const loginWithGoogle = async () => {
+    try {
+        await GoogleAuth.initialize({ clientId: import.meta.env.VITE_GOOGLE_CLIENT_ID })
+        const googleUser = await GoogleAuth.signIn()
+        const idToken = googleUser.authentication.idToken
+
+        const loading = await loadingController.create({ message: 'Signing in...' })
+        await loading.present()
+
+        const res = await authService.googleAuth(idToken)
+        const { user, tempToken, isPinSet } = res.data.data
+
+        auth.setUser(user)
+        auth.setTempToken(tempToken)
+        auth.setIsPinSet(isPinSet)
+
+        router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
+        await loading.dismiss()
+    } catch (err: any) {
+        showToast(err.response?.data?.message || 'Google sign in failed')
+    }
 }
 </script>
 

@@ -1,7 +1,7 @@
 {
   "name": "myUang",
   "private": true,
-  "version": "0.0.1",
+  "version": "0.1.1",
   "type": "module",
   "scripts": {
     "dev": "vite",
@@ -17,9 +17,12 @@
     "@capacitor/haptics": "8.0.2",
     "@capacitor/keyboard": "8.0.3",
     "@capacitor/status-bar": "8.0.2",
+    "@codetrix-studio/capacitor-google-auth": "^3.4.0-rc.4",
     "@ionic/vue": "^8.0.0",
     "@ionic/vue-router": "^8.0.0",
+    "axios": "^1.15.2",
     "ionicons": "^7.0.0",
+    "pinia": "^3.0.4",
     "vue": "^3.3.0",
     "vue-router": "^4.2.0"
   },

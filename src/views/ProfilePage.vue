@@ -51,7 +51,7 @@
                 </div>
 
                 <!-- Version -->
-                <div class="version-text">v0.0.1</div>
+                <div class="version-text">v0.1.1</div>
                 <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div>
 
             </div>
@@ -66,9 +66,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
+import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonIcon, IonAlert } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
+import { useAuthStore } from '@/stores/auth'
 import AppHeader from './components/AppHeader.vue'
+
+const router = useRouter()
+const auth = useAuthStore()
 
 const currentYear = new Date().getFullYear()
 const showLogoutAlert = ref(false)
@@ -83,15 +88,16 @@ const logoutButtons = computed(() => [
     {
         text: 'Yes',
         cssClass: 'alert-btn-yes-danger',
-        handler: () => {
+        handler: async () => {
             showLogoutAlert.value = false
-            console.log('Log Out')
+            await auth.logout()
+            router.replace('/login')
         },
     },
 ])
 
-const handleEditProfile = () => console.log('Edit Profile')
-const handleLanguage = () => console.log('Language')
+const handleEditProfile = () => router.push('/edit-profile')
+const handleLanguage = () => router.push('/language')
 const handleAboutUs = () => console.log('About Us')
 const handleHelpCenter = () => console.log('Help Center')
 const handleLogOut = () => { showLogoutAlert.value = true }

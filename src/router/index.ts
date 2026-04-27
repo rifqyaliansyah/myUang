@@ -1,24 +1,32 @@
-import { createRouter, createWebHistory } from '@ionic/vue-router';
-import { RouteRecordRaw } from 'vue-router';
+import { createRouter, createWebHistory } from '@ionic/vue-router'
+import { RouteRecordRaw } from 'vue-router'
+import { useAuthStore } from '@/stores/auth'
+
 import TabsPage from '../views/TabsPage.vue'
 import LoginPage from '../views/auth/LoginPage.vue'
-import SignUpPage from '../views/auth/SignUpPage.vue';
-import ForgotPasswordPage from '../views/auth/ForgotPasswordPage.vue';
-import SentMailPage from '../views/auth/SentMailPage.vue';
-import SetupPinPage from '../views/auth/SetupPinPage.vue';
-import WelcomePage from '../views/auth/WelcomePage.vue';
-import NotificationPage from '../views/NotificationPage.vue';
-import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue';
-import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue';
-import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue';
-import WalletPage from '../views/wallet/WalletPage.vue';
-import WalletFormPage from '../views/wallet/WalletFormPage.vue';
-import PocketFormPage from '../views/budgeting/PocketFormPage.vue';
-import PocketDetailPage from '../views/budgeting/PocketDetailPage.vue';
-import GoalsFormPage from '../views/goals/GoalsFormPage.vue';
-import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue';
-import ProfileFormPage from '../views/profile/ProfileFormPage.vue';
-import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue';
+import SignUpPage from '../views/auth/SignUpPage.vue'
+import ForgotPasswordPage from '../views/auth/ForgotPasswordPage.vue'
+import SentMailPage from '../views/auth/SentMailPage.vue'
+import SetupPinPage from '../views/auth/SetupPinPage.vue'
+import VerifyPinPage from '../views/auth/VerifyPinPage.vue'
+import WelcomePage from '../views/auth/WelcomePage.vue'
+import NotificationPage from '../views/NotificationPage.vue'
+import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue'
+import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue'
+import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue'
+import WalletPage from '../views/wallet/WalletPage.vue'
+import WalletFormPage from '../views/wallet/WalletFormPage.vue'
+import PocketFormPage from '../views/budgeting/PocketFormPage.vue'
+import PocketDetailPage from '../views/budgeting/PocketDetailPage.vue'
+import GoalsFormPage from '../views/goals/GoalsFormPage.vue'
+import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue'
+import ProfileFormPage from '../views/profile/ProfileFormPage.vue'
+import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue'
+
+const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
+const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin']
+const PIN_SUCCESS_ROUTE = '/welcome'
+const AFTER_LOGIN_BLOCKED = [...PUBLIC_ROUTES, ...TEMP_TOKEN_ROUTES, PIN_SUCCESS_ROUTE]
 
 const routes: Array<RouteRecordRaw> = [
   {
@@ -71,6 +79,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/setup-pin',
     name: 'Setup PIN',
     component: SetupPinPage
+  },
+  {
+    path: '/verify-pin',
+    name: 'Verify PIN',
+    component: VerifyPinPage
   },
   {
     path: '/welcome',
@@ -157,6 +170,48 @@ const routes: Array<RouteRecordRaw> = [
 const router = createRouter({
   history: createWebHistory(import.meta.env.BASE_URL),
   routes
+})
+
+router.beforeEach(async (to, _from, next) => {
+  const auth = useAuthStore()
+
+  if (!auth.sessionChecked) {
+    await auth.initializeAuth()
+  }
+
+  const isPublic = PUBLIC_ROUTES.includes(to.path)
+  const isTempRoute = TEMP_TOKEN_ROUTES.includes(to.path)
+  const isPinSuccessRoute = to.path === PIN_SUCCESS_ROUTE
+  const isBlockedAfterLogin = AFTER_LOGIN_BLOCKED.includes(to.path)
+
+  if (auth.pinVerified && isBlockedAfterLogin) {
+    return next('/home')
+  }
+
+  if (isPublic) {
+    if (!auth.accessToken) return next()
+    if (auth.hasTempToken) return next('/verify-pin')
+    return next()
+  }
+
+  if (isPinSuccessRoute) {
+    if (!auth.isAuthenticated) return next('/login')
+    return next()
+  }
+
+  if (isTempRoute) {
+    if (!auth.hasTempToken) return next('/login')
+    return next()
+  }
+
+  if (!auth.accessToken) return next('/login')
+
+  if (!auth.pinVerified) {
+    if (auth.hasTempToken) return next('/verify-pin')
+    return next('/login')
+  }
+
+  return next()
 })
 
 export default router

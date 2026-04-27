@@ -63,7 +63,7 @@
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn"
                         :disabled="!name || !email || !password || !repeatPassword || !passwordMatch"
-                        @click="handleLogin">
+                        @click="handleRegister">
                         Sign Up
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
@@ -82,15 +82,14 @@
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
-import {
-    IonPage,
-    IonContent,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonIcon,
-} from '@ionic/vue'
+import { useRouter } from 'vue-router'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
+import authService from '@/services/auth.service'
+import { useAuthStore } from '@/stores/auth'
+
+const router = useRouter()
+const auth = useAuthStore()
 
 const name = ref('')
 const email = ref('')
@@ -101,9 +100,35 @@ const showRepeatPassword = ref(false)
 
 const passwordMatch = computed(() => password.value === repeatPassword.value)
 
-const handleLogin = () => {
-    if (!passwordMatch.value) return
-    // handle register logic
+async function showToast(message: string, color = 'danger') {
+  const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+  await toast.present()
+}
+
+const handleRegister = async () => {
+  if (!passwordMatch.value) return
+
+  const loading = await loadingController.create({ message: 'Creating account...' })
+  await loading.present()
+
+  try {
+    const res = await authService.register({
+      name: name.value,
+      email: email.value,
+      password: password.value,
+    })
+    const { user, tempToken } = res.data.data
+
+    auth.setUser(user)
+    auth.setTempToken(tempToken)
+    auth.setIsPinSet(false)
+
+    router.replace('/setup-pin')
+  } catch (err: any) {
+    showToast(err.response?.data?.message || 'Registration failed')
+  } finally {
+    await loading.dismiss()
+  }
 }
 </script>
 

@@ -7,22 +7,18 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Setup PIN</h1>
-                    <p>{{ headerSubtitle }}</p>
+                    <h1>Enter PIN</h1>
+                    <p>Enter your PIN to continue</p>
                 </div>
 
-                <!-- PIN Dots -->
                 <div class="pin-dots">
                     <div v-for="i in 4" :key="i" class="pin-dot" :class="{ filled: currentPin.length >= i }"></div>
                 </div>
 
-                <!-- Error message -->
                 <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-                <!-- Spacer -->
                 <div class="spacer"></div>
 
-                <!-- Numeric Keyboard -->
                 <div class="pin-keyboard">
                     <div class="keyboard-row" v-for="row in keyboardRows" :key="row.join('')">
                         <button v-for="key in row" :key="key" class="key-btn"
@@ -35,11 +31,16 @@
                                         fill="currentColor" />
                                 </svg>
                             </template>
-                            <template v-else-if="key !== ''">
-                                {{ key }}
-                            </template>
+                            <template v-else-if="key !== ''">{{ key }}</template>
                         </button>
                     </div>
+                </div>
+
+                <!-- Logout link -->
+                <div class="logout-wrapper">
+                    <ion-button fill="clear" class="logout-btn" @click="handleLogout">
+                        Use another account
+                    </ion-button>
                 </div>
             </div>
         </ion-content>
@@ -47,28 +48,18 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
+import { ref } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, toastController } from '@ionic/vue'
 import authService from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
 
-type Step = 'create' | 'confirm'
-
-const step = ref<Step>('create')
-const firstPin = ref('')
 const currentPin = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
-
-const headerSubtitle = computed(() =>
-    step.value === 'create'
-        ? "Let's create a PIN for extra security"
-        : 'Alright, please re-enter your PIN'
-)
 
 const keyboardRows = [
     ['1', '2', '3'],
@@ -99,40 +90,27 @@ async function handleKey(key: string) {
     currentPin.value += key
 
     if (currentPin.value.length === 4) {
-        if (step.value === 'create') {
-            firstPin.value = currentPin.value
-            currentPin.value = ''
-            step.value = 'confirm'
-            return
-        }
-
-        if (currentPin.value !== firstPin.value) {
-            errorMessage.value = 'PIN does not match. Please try again.'
-            currentPin.value = ''
-            firstPin.value = ''
-            step.value = 'create'
-            return
-        }
-
         isLoading.value = true
         try {
-            const res = await authService.setupPin(currentPin.value, auth.tempToken!)
+            const res = await authService.verifyPin(currentPin.value, auth.tempToken!)
             const { accessToken, refreshToken } = res.data.data
 
             auth.setTokens(accessToken, refreshToken)
-            auth.setIsPinSet(true)
             auth.setPinVerified()
 
-            router.replace('/welcome')
+            router.replace('/home')
         } catch (err: any) {
-            showToast(err.response?.data?.message || 'Failed to setup PIN')
+            errorMessage.value = err.response?.data?.message || 'Invalid PIN'
             currentPin.value = ''
-            firstPin.value = ''
-            step.value = 'create'
         } finally {
             isLoading.value = false
         }
     }
+}
+
+async function handleLogout() {
+    await auth.logout()
+    router.replace('/login')
 }
 </script>
 
