@@ -97,6 +97,39 @@ async function showToast(message: string, color = 'danger') {
 }
 
 onMounted(() => {
+    // // @ts-ignore
+    // google.accounts.id.initialize({
+    //     client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+    //     use_fedcm_for_prompt: false,
+    //     callback: async (response: { credential: string }) => {
+    //         const loading = await loadingController.create({ message: 'Signing in...' })
+    //         await loading.present()
+
+    //         try {
+    //             const res = await authService.googleAuth(response.credential)
+    //             const { user, tempToken, isPinSet } = res.data.data
+
+    //             auth.setUser(user)
+    //             auth.setTempToken(tempToken)
+    //             auth.setIsPinSet(isPinSet)
+
+    //             router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
+    //         } catch (err: any) {
+    //             showToast(err.response?.data?.message || 'Google sign in failed')
+    //         } finally {
+    //             await loading.dismiss()
+    //         }
+    //     },
+    // })
+
+    // // @ts-ignore
+    // google.accounts.id.renderButton(googleBtnRef.value, {
+    //     theme: 'outline',
+    //     size: 'large',
+    // })
+})
+
+const loginWithGoogle = () => {
     // @ts-ignore
     google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
@@ -127,9 +160,7 @@ onMounted(() => {
         theme: 'outline',
         size: 'large',
     })
-})
 
-const loginWithGoogle = () => {
     const googleBtn = googleBtnRef.value?.querySelector('div[role=button]') as HTMLElement
     googleBtn?.click()
 }
