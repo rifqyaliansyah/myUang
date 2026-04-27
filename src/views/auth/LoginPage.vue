@@ -46,6 +46,10 @@
 
                     <!-- Google Login -->
                     <div class="social-wrapper">
+                        <!-- Hidden Google button, tetap ke-render di DOM -->
+                        <div ref="googleBtnRef" class="google-btn-hidden"></div>
+
+                        <!-- Tampilan button tetap seperti semula -->
                         <ion-button fill="outline" class="google-btn" @click="loginWithGoogle">
                             <img src="/assets/icon/google.svg" alt="Google" class="google-icon" />
                         </ion-button>
@@ -72,7 +76,7 @@
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
@@ -85,36 +89,18 @@ const auth = useAuthStore()
 const email = ref('')
 const password = ref('')
 const showPassword = ref(false)
+const googleBtnRef = ref<HTMLElement | null>(null)
 
 async function showToast(message: string, color = 'danger') {
     const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
     await toast.present()
 }
 
-const handleLogin = async () => {
-    const loading = await loadingController.create({ message: 'Logging in...' })
-    await loading.present()
-
-    try {
-        const res = await authService.login({ email: email.value, password: password.value })
-        const { user, tempToken, isPinSet } = res.data.data
-
-        auth.setUser(user)
-        auth.setTempToken(tempToken)
-        auth.setIsPinSet(isPinSet)
-
-        router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
-    } catch (err: any) {
-        showToast(err.response?.data?.message || 'Login failed')
-    } finally {
-        await loading.dismiss()
-    }
-}
-
-const loginWithGoogle = () => {
+onMounted(() => {
     // @ts-ignore
     google.accounts.id.initialize({
         client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
+        use_fedcm_for_prompt: false,
         callback: async (response: { credential: string }) => {
             const loading = await loadingController.create({ message: 'Signing in...' })
             await loading.present()
@@ -137,7 +123,35 @@ const loginWithGoogle = () => {
     })
 
     // @ts-ignore
-    google.accounts.id.prompt()
+    google.accounts.id.renderButton(googleBtnRef.value, {
+        theme: 'outline',
+        size: 'large',
+    })
+})
+
+const loginWithGoogle = () => {
+    const googleBtn = googleBtnRef.value?.querySelector('div[role=button]') as HTMLElement
+    googleBtn?.click()
+}
+
+const handleLogin = async () => {
+    const loading = await loadingController.create({ message: 'Logging in...' })
+    await loading.present()
+
+    try {
+        const res = await authService.login({ email: email.value, password: password.value })
+        const { user, tempToken, isPinSet } = res.data.data
+
+        auth.setUser(user)
+        auth.setTempToken(tempToken)
+        auth.setIsPinSet(isPinSet)
+
+        router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
+    } catch (err: any) {
+        showToast(err.response?.data?.message || 'Login failed')
+    } finally {
+        await loading.dismiss()
+    }
 }
 </script>
 
@@ -296,8 +310,18 @@ const loginWithGoogle = () => {
 
 /* Google */
 .social-wrapper {
+    position: relative;
     display: flex;
     justify-content: center;
+}
+
+.google-btn-hidden {
+    position: absolute;
+    opacity: 0;
+    pointer-events: none;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
 }
 
 .google-btn {
