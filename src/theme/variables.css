@@ -93,3 +93,12 @@ http://ionicframework.com/docs/theming/ */
 ion-input {
   --highlight-height: 0 !important;
 }
+
+ion-content::part(scroll) {
+    scrollbar-width: none;
+    -ms-overflow-style: none;
+}
+
+ion-content::part(scroll)::-webkit-scrollbar {
+    display: none;
+}
