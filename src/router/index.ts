@@ -180,7 +180,7 @@ router.beforeEach(async (to, _from, next) => {
   const isPinSuccessRoute = to.path === PIN_SUCCESS_ROUTE
   const isBlockedAfterLogin = AFTER_LOGIN_BLOCKED.includes(to.path)
 
-  if (auth.pinVerified && isBlockedAfterLogin) {
+  if (auth.pinVerified && isBlockedAfterLogin && !isPinSuccessRoute) {
     return next('/')
   }
 
