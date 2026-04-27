@@ -40,30 +40,34 @@
 
                 <!-- Save Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!name || !amount" @click="handleSubmit">
-                        {{ isEdit ? 'Save' : 'Add Pocket' }}
+                    <ion-button expand="block" class="save-btn" :disabled="!name || !amount || isSubmitting"
+                        @click="handleSubmit">
+                        <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>{{ isEdit ? 'Save' : 'Add Pocket' }}</span>
                     </ion-button>
                 </div>
 
             </div>
         </ion-content>
 
-        <!-- Emoji Picker Sheet -->
         <EmojiPickerSheet :is-open="showEmojiPicker" @close="showEmojiPicker = false" @select="(e) => { emoji = e }" />
     </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
-import { useRoute } from 'vue-router'
-import { chevronForwardOutline } from 'ionicons/icons'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner } from '@ionic/vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import EmojiPickerSheet from '../components/EmojiPickerSheet.vue'
+import { usePocketStore } from '@/stores/pocket'
 
 const route = useRoute()
+const router = useRouter()
+const pocketStore = usePocketStore()
 
 const isEdit = computed(() => route.name === 'Edit Pocket')
+const isSubmitting = ref(false)
 
 const emoji = ref('😊')
 const name = ref('')
@@ -72,20 +76,18 @@ const displayAmount = ref('')
 const description = ref('')
 const showEmojiPicker = ref(false)
 
-const staticPockets = [
-    { id: 1, emoji: '😊', name: 'Food', balance: 1500000, description: 'Money for food, snack, etc' },
-    { id: 2, emoji: '⛽', name: 'Gas', balance: 0, description: 'Oil pocket' },
-]
-
-onMounted(() => {
+onMounted(async () => {
     if (isEdit.value) {
-        const id = Number(route.params.id)
-        const pocket = staticPockets.find(p => p.id === id)
+        let pocket = pocketStore.pockets.find(p => p.id === route.params.id)
+        if (!pocket) {
+            await pocketStore.fetchPockets()
+            pocket = pocketStore.pockets.find(p => p.id === route.params.id)
+        }
         if (pocket) {
             emoji.value = pocket.emoji
             name.value = pocket.name
-            amount.value = String(pocket.balance)
-            displayAmount.value = pocket.balance.toLocaleString('id-ID')
+            amount.value = String(pocket.budget_limit)
+            displayAmount.value = pocket.budget_limit.toLocaleString('id-ID')
             description.value = pocket.description
         }
     }
@@ -97,11 +99,24 @@ const handleAmountInput = (e: any) => {
     displayAmount.value = raw ? Number(raw).toLocaleString('id-ID') : ''
 }
 
-const handleSubmit = () => {
-    if (isEdit.value) {
-        console.log('Update Pocket', { id: route.params.id, emoji: emoji.value, name: name.value, amount: amount.value, description: description.value })
-    } else {
-        console.log('Add Pocket', { emoji: emoji.value, name: name.value, amount: amount.value, description: description.value })
+const handleSubmit = async () => {
+    if (!name.value || !amount.value) return
+    isSubmitting.value = true
+    try {
+        const payload = {
+            emoji: emoji.value,
+            name: name.value,
+            budget_limit: Number(amount.value),
+            description: description.value,
+        }
+        if (isEdit.value) {
+            await pocketStore.updatePocket(route.params.id as string, payload)
+        } else {
+            await pocketStore.createPocket(payload)
+        }
+        router.back()
+    } finally {
+        isSubmitting.value = false
     }
 }
 </script>

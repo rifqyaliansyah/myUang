@@ -5,53 +5,60 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
+                <!-- Loading -->
+                <div v-if="pocketStore.loading" class="loading-wrapper">
+                    <ion-spinner name="crescent" />
+                </div>
+
                 <!-- Pocket Card -->
-                <div class="pocket-card" v-for="pocket in pockets" :key="pocket.id">
-                    <div class="pocket-card-header">
-                        <span class="pocket-emoji">{{ pocket.emoji }}</span>
-                        <ion-button fill="clear" class="pocket-menu-btn" :id="`pocket-menu-${pocket.id}`">
-                            <ion-icon :icon="ellipsisVertical" />
-                        </ion-button>
-                    </div>
-
-                    <div class="pocket-name">{{ pocket.name }}</div>
-                    <div class="pocket-amount">IDR {{ formatAmount(pocket.used) }}</div>
-
-                    <div class="pocket-progress-wrapper">
-                        <div class="pocket-progress-bar">
-                            <div class="pocket-progress-fill" :style="{ width: progressPercent(pocket) + '%' }" />
+                <template v-else>
+                    <div class="pocket-card" v-for="pocket in pocketStore.pockets" :key="pocket.id">
+                        <div class="pocket-card-header">
+                            <span class="pocket-emoji">{{ pocket.emoji }}</span>
+                            <ion-button fill="clear" class="pocket-menu-btn" :id="`pocket-menu-${pocket.id}`">
+                                <ion-icon :icon="ellipsisVertical" />
+                            </ion-button>
                         </div>
+
+                        <div class="pocket-name">{{ pocket.name }}</div>
+                        <div class="pocket-amount">IDR {{ formatAmount(pocket.used) }}</div>
+
+                        <div class="pocket-progress-wrapper">
+                            <div class="pocket-progress-bar">
+                                <div class="pocket-progress-fill" :style="{ width: progressPercent(pocket) + '%' }" />
+                            </div>
+                        </div>
+
+                        <div class="pocket-used">
+                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} used
+                        </div>
+                        <div class="pocket-desc">{{ pocket.description }}</div>
+
+                        <!-- Popover -->
+                        <ion-popover :trigger="`pocket-menu-${pocket.id}`" side="bottom" alignment="end"
+                            trigger-action="click" :dismiss-on-select="true" :show-backdrop="false"
+                            :style="popoverStyle" class="pocket-popover">
+                            <ion-content class="popover-content">
+                                <div class="menu-item" @click="handleDetails(pocket)">
+                                    <span>Details</span>
+                                </div>
+                                <div class="menu-divider"></div>
+                                <div class="menu-item" @click="handleEdit(pocket)">
+                                    <span>Edit</span>
+                                </div>
+                                <div class="menu-divider"></div>
+                                <div class="menu-item menu-item--danger" @click="handleDelete(pocket)">
+                                    <span>Delete</span>
+                                </div>
+                            </ion-content>
+                        </ion-popover>
                     </div>
 
-                    <div class="pocket-used">
-                        IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.limit) }} used
+                    <!-- Add New Pocket -->
+                    <div class="add-pocket-btn" @click="handleAddPocket">
+                        <span>Add New Pocket</span>
                     </div>
-                    <div class="pocket-desc">{{ pocket.description }}</div>
-
-                    <!-- Popover -->
-                    <ion-popover :trigger="`pocket-menu-${pocket.id}`" side="bottom" alignment="end"
-                        trigger-action="click" :dismiss-on-select="true" :show-backdrop="false" :style="popoverStyle"
-                        class="pocket-popover">
-                        <ion-content class="popover-content">
-                            <div class="menu-item" @click="handleDetails(pocket)">
-                                <span>Details</span>
-                            </div>
-                            <div class="menu-divider"></div>
-                            <div class="menu-item" @click="handleEdit(pocket)">
-                                <span>Edit</span>
-                            </div>
-                            <div class="menu-divider"></div>
-                            <div class="menu-item menu-item--danger" @click="handleDelete(pocket)">
-                                <span>Delete</span>
-                            </div>
-                        </ion-content>
-                    </ion-popover>
-                </div>
-
-                <!-- Add New Pocket -->
-                <div class="add-pocket-btn" @click="handleAddPocket">
-                    <span>Add New Pocket</span>
-                </div>
+                </template>
 
             </div>
         </ion-content>
@@ -71,18 +78,20 @@
 </template>
 
 <script setup lang="ts">
-import { ref, computed } from 'vue'
-import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonFab, IonFabButton, IonSpinner } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { ellipsisVertical, addOutline } from 'ionicons/icons'
+import { usePocketStore, type Pocket } from '@/stores/pocket'
 
-const pockets = ref([
-    { id: 1, emoji: '😊', name: 'Food', used: 1000000, limit: 1500000, description: 'Money for food, snack, etc' },
-    { id: 2, emoji: '⛽', name: 'Gas', used: 0, limit: 0, description: 'Oil pocket' },
-])
+const router = useRouter()
+const pocketStore = usePocketStore()
+
+onMounted(() => pocketStore.fetchPockets())
 
 const showDeleteAlert = ref(false)
-const pocketToDelete = ref<any>(null)
+const pocketToDelete = ref<Pocket | null>(null)
 
 const alertButtons = computed(() => [
     {
@@ -94,9 +103,9 @@ const alertButtons = computed(() => [
     {
         text: 'Yes',
         cssClass: 'alert-btn-yes',
-        handler: () => {
+        handler: async () => {
             if (pocketToDelete.value) {
-                pockets.value = pockets.value.filter(p => p.id !== pocketToDelete.value.id)
+                await pocketStore.deletePocket(pocketToDelete.value.id)
                 pocketToDelete.value = null
             }
             showDeleteAlert.value = false
@@ -113,29 +122,23 @@ const popoverStyle = computed(() => {
     return `--offset-x: ${offset}px;`
 })
 
-const formatAmount = (value: number) => value.toLocaleString('id-ID')
-
-const progressPercent = (pocket: any) => {
-    if (!pocket.limit) return 0
-    return Math.min((pocket.used / pocket.limit) * 100, 100)
+const formatAmount = (value: number) => {
+    const num = Number(value) || 0
+    return Math.floor(num).toLocaleString('id-ID')
 }
 
-const handleDetails = (pocket: any) => {
-    console.log('Details', pocket.name)
+const progressPercent = (pocket: Pocket) => {
+    if (!pocket.budget_limit) return 0
+    return Math.min((pocket.used / pocket.budget_limit) * 100, 100)
 }
 
-const handleEdit = (pocket: any) => {
-    console.log('Edit', pocket.name)
-}
-
-const handleDelete = (pocket: any) => {
+const handleDetails = (pocket: Pocket) => router.push(`/detail-pocket/${pocket.id}`)
+const handleEdit = (pocket: Pocket) => router.push(`/edit-pocket/${pocket.id}`)
+const handleDelete = (pocket: Pocket) => {
     pocketToDelete.value = pocket
     showDeleteAlert.value = true
 }
-
-const handleAddPocket = () => {
-    console.log('Add new pocket')
-}
+const handleAddPocket = () => router.push('/add-pocket')
 </script>
 
 <style scoped>
