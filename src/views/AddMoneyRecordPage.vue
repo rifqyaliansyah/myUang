@@ -47,15 +47,14 @@
                 </div>
 
                 <!-- Choose Pocket -->
-                <div class="form-group">
-                    <ion-label>Choose Pocket</ion-label>
+                <div class="form-group" v-if="type === 'expense'">
+                    <ion-label>Choose Pocket (Optional)</ion-label>
                     <div class="input-wrapper select-wrapper">
                         <select v-model="pocket" class="custom-select">
                             <option value="">Select pocket</option>
-                            <option value="food">Food</option>
-                            <option value="transport">Transport</option>
-                            <option value="shopping">Shopping</option>
-                            <option value="entertainment">Entertainment</option>
+                            <option v-for="p in pocketStore.pockets" :key="p.id" :value="p.id">
+                                {{ p.emoji }} {{ p.name }}
+                            </option>
                         </select>
                         <ion-icon :icon="chevronDownOutline" class="select-chevron" />
                     </div>
@@ -80,9 +79,10 @@
 
                 <!-- Save Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!name || !date || !amount"
+                    <ion-button expand="block" class="save-btn" :disabled="!name || !date || !amount || isSubmitting"
                         @click="handleSave">
-                        Save
+                        <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>Save</span>
                     </ion-button>
                 </div>
 
@@ -92,18 +92,30 @@
 </template>
 
 <script setup lang="ts">
-import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
+import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { chevronDownOutline, documentOutline } from 'ionicons/icons'
+import { useWalletStore } from '@/stores/wallet'
+import { usePocketStore } from '@/stores/pocket'
+import { useTransactionStore } from '@/stores/transaction'
+
+const router = useRouter()
+const walletStore = useWalletStore()
+const pocketStore = usePocketStore()
+const transactionStore = useTransactionStore()
 
 const name = ref('')
-const type = ref('income')
+const type = ref<'income' | 'expense'>('income')
 const date = ref('')
 const amount = ref('')
 const displayAmount = ref('')
 const pocket = ref('')
 const description = ref('')
+const isSubmitting = ref(false)
+
+const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
 
 const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
@@ -111,7 +123,7 @@ const handleAmountInput = (e: any) => {
     displayAmount.value = raw ? Number(raw).toLocaleString('id-ID') : ''
 }
 
-onMounted(() => {
+onMounted(async () => {
     const style = document.createElement('style')
     style.innerHTML = `
         .date-input input[type="date"]::-webkit-calendar-picker-indicator {
@@ -121,14 +133,43 @@ onMounted(() => {
         }
     `
     document.head.appendChild(style)
+
+    if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
+    if (pocketStore.pockets.length === 0) await pocketStore.fetchPockets()
 })
+
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
 
 const addAttachment = () => {
     console.log('Add attachment')
 }
 
-const handleSave = () => {
-    console.log('Save', { name: name.value, type: type.value, date: date.value, amount: amount.value, pocket: pocket.value, description: description.value })
+const handleSave = async () => {
+    if (!activeWallet.value) return showToast('No active wallet')
+    if (!name.value || !date.value || !amount.value) return
+
+    isSubmitting.value = true
+    try {
+        await transactionStore.createTransaction({
+            wallet_id: activeWallet.value.id,
+            pocket_id: type.value === 'expense' && pocket.value ? pocket.value : null,
+            type: type.value,
+            amount: Number(amount.value),
+            note: name.value,
+            date: date.value,
+        })
+        await walletStore.fetchWallets()
+        await pocketStore.fetchPockets()
+        showToast('Record saved', 'success')
+        router.back()
+    } catch (err: any) {
+        showToast(err?.response?.data?.message || 'Failed to save record')
+    } finally {
+        isSubmitting.value = false
+    }
 }
 </script>
 

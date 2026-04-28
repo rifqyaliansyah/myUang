@@ -60,7 +60,6 @@
 
                 <!-- Summary Grid -->
                 <div class="summary-grid">
-                    <!-- Income -->
                     <ion-card class="summary-card clickable" @click="router.push('/income-summary')">
                         <ion-card-content>
                             <span class="card-emoji">🤑</span>
@@ -68,11 +67,10 @@
                                 <ion-icon :icon="caretUpOutline" class="trend-icon" />
                                 <span>Income</span>
                             </div>
-                            <p class="card-amount">IDR 8.000.000</p>
+                            <p class="card-amount">IDR {{ formatAmount(transactionStore.summary.total_income) }}</p>
                         </ion-card-content>
                     </ion-card>
 
-                    <!-- Expense -->
                     <ion-card class="summary-card clickable" @click="router.push('/expense-summary')">
                         <ion-card-content>
                             <span class="card-emoji">💸</span>
@@ -80,7 +78,7 @@
                                 <ion-icon :icon="caretDownOutline" class="trend-icon" />
                                 <span>Expense</span>
                             </div>
-                            <p class="card-amount">IDR 3.000.000</p>
+                            <p class="card-amount">IDR {{ formatAmount(transactionStore.summary.total_expense) }}</p>
                         </ion-card-content>
                     </ion-card>
 
@@ -90,7 +88,7 @@
                             <div class="card-label neutral">
                                 <span>Pockets</span>
                             </div>
-                            <p class="card-amount">7 Pockets</p>
+                            <p class="card-amount">{{ pocketStore.pockets.length }} Pockets</p>
                         </ion-card-content>
                     </ion-card>
 
@@ -100,7 +98,7 @@
                             <div class="card-label neutral">
                                 <span>Goals</span>
                             </div>
-                            <p class="card-amount">10 Goals</p>
+                            <p class="card-amount">{{ goalStore.goals.length }} Goals</p>
                         </ion-card-content>
                     </ion-card>
                 </div>
@@ -108,48 +106,33 @@
                 <!-- Recent Transaction -->
                 <div class="section-header">
                     <span class="section-title">Recent Transaction</span>
-                    <div class="section-action">
-                        <span>All</span>
-                        <ion-icon :icon="chevronDownOutline" class="period-chevron" />
-                    </div>
                 </div>
 
                 <div class="transaction-list">
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Nasi Goreng</p>
-                                    <p class="transaction-date">17/04/23</p>
-                                </div>
-                                <p class="transaction-amount expense">- IDR 40.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                    <div v-if="transactionStore.loading" class="loading-wrapper">
+                        <ion-spinner name="crescent" />
+                    </div>
 
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Gaji Bulanan</p>
-                                    <p class="transaction-date">15/04/23</p>
-                                </div>
-                                <p class="transaction-amount income">+ IDR 8.000.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                    <template v-else>
+                        <div v-if="transactionStore.transactions.length === 0" class="empty-tx">
+                            <p>No transactions yet</p>
+                        </div>
 
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Bensin Motor</p>
-                                    <p class="transaction-date">14/04/23</p>
+                        <ion-card class="transaction-card" v-for="tx in transactionStore.recentTransactions"
+                            :key="tx.id">
+                            <ion-card-content>
+                                <div class="transaction-item">
+                                    <div class="transaction-info">
+                                        <p class="transaction-name">{{ txLabel(tx) }}</p>
+                                        <p class="transaction-date">{{ formatDate(tx.date) }}</p>
+                                    </div>
+                                    <p class="transaction-amount" :class="tx.type === 'income' ? 'income' : 'expense'">
+                                        {{ tx.type === 'income' ? '+' : '-' }} IDR {{ formatAmount(tx.amount) }}
+                                    </p>
                                 </div>
-                                <p class="transaction-amount expense">- IDR 50.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                            </ion-card-content>
+                        </ion-card>
+                    </template>
                 </div>
             </div>
         </ion-content>
@@ -163,29 +146,63 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton, IonPopover } from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton, IonPopover, IonSpinner } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/stores/wallet'
 import { useAuthStore } from '@/stores/auth'
+import { useTransactionStore } from '@/stores/transaction'
+import { usePocketStore } from '@/stores/pocket'
+import { useGoalStore } from '@/stores/goal'
 import profileService from '@/services/profile.service'
-import { onMounted, computed, ref } from 'vue'
+import { onMounted, computed, ref, watch } from 'vue'
 import {
     chevronDownOutline, notificationsOutline,
-    caretUpOutline, caretDownOutline, addOutline, checkmarkOutline, walletOutline
+    caretUpOutline, caretDownOutline, addOutline, walletOutline
 } from 'ionicons/icons'
 
 const router = useRouter()
 const walletStore = useWalletStore()
 const auth = useAuthStore()
+const transactionStore = useTransactionStore()
+const pocketStore = usePocketStore()
+const goalStore = useGoalStore()
 const isDropdownOpen = ref(false)
+
+const now = new Date()
+const currentMonth = now.getMonth() + 1
+const currentYear = now.getFullYear()
 
 const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
 const avatarUrl = computed(() => auth.user?.avatar_url || DEFAULT_AVATAR)
-
-const goToNotification = () => {
-    router.push('/notification')
-}
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
+
+const loadTransactionData = async (walletId: string) => {
+    await Promise.all([
+        transactionStore.fetchTransactions({ walletId }),
+        transactionStore.fetchSummary(walletId, currentMonth, currentYear),
+    ])
+}
+
+onMounted(async () => {
+    await walletStore.fetchWallets()
+    await Promise.all([
+        pocketStore.fetchPockets(),
+        goalStore.fetchGoals(),
+    ])
+
+    try {
+        const res = await profileService.getProfile()
+        auth.setUser(res.data.data)
+    } catch { /* fallback */ }
+
+    if (activeWallet.value) {
+        await loadTransactionData(activeWallet.value.id)
+    }
+})
+
+watch(activeWallet, async (wallet) => {
+    if (wallet) await loadTransactionData(wallet.id)
+})
 
 const selectWallet = async (wallet: any) => {
     if (!wallet.is_active) {
@@ -202,17 +219,21 @@ const popoverStyle = computed(() => {
     return `--offset-x: ${offset}px;`
 })
 
-onMounted(async () => {
-    await walletStore.fetchWallets()
-    try {
-        const res = await profileService.getProfile()
-        auth.setUser(res.data.data)
-    } catch {
-        // fallback ke localStorage
-    }
-})
-
 const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
+
+const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
+const txLabel = (tx: any) => {
+    if (tx.note) return tx.note
+    if (tx.type === 'goal_topup') return `Goals: ${tx.goal_name ?? 'Goal'}`
+    if (tx.type === 'income') return 'Income'
+    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : 'Expense'
+}
+
+const goToNotification = () => router.push('/notification')
 </script>
 
 <style scoped>
@@ -287,6 +308,7 @@ const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
     overflow: hidden;
     border: 1px solid #3077E3;
     background: var(--color-bg-1);
+    cursor: pointer;
 }
 
 .avatar img {
@@ -616,5 +638,22 @@ const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
 .wallet-selector-wrapper {
     width: fit-content;
     cursor: pointer;
+}
+
+.empty-tx {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 0;
+    width: 100%;
+}
+
+.empty-tx p {
+    font-size: 16px;
+    line-height: 24px;
+    font-weight: 400;
+    letter-spacing: -0.02em;
+    color: var(--color-black-60);
+    margin: 0;
 }
 </style>

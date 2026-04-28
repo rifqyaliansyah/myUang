@@ -5,45 +5,54 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Pocket Summary Card -->
-                <div class="pocket-summary-card">
-                    <div class="pocket-summary-header">
-                        <span class="pocket-emoji">{{ pocket.emoji }}</span>
-                        <span class="pocket-name">{{ pocket.name }}</span>
-                    </div>
-
-                    <div class="pocket-balance">
-                        IDR {{ formatAmount(pocket.used) }}<span class="pocket-limit">/IDR {{ formatAmount(pocket.limit)
-                            }}</span>
-                    </div>
-
-                    <div class="pocket-desc">{{ pocket.description }}</div>
-
-                    <div class="pocket-progress-bar">
-                        <div class="pocket-progress-fill" :style="{ width: progressPercent + '%' }" />
-                    </div>
-
-                    <div class="pocket-reached">
-                        IDR {{ formatAmount(pocket.reached) }} of IDR {{ formatAmount(pocket.limit) }} reached
-                    </div>
+                <div v-if="loading" class="loading-wrapper">
+                    <ion-spinner name="crescent" />
                 </div>
 
-                <!-- Transaction History -->
-                <div class="section-title">Transaction History</div>
+                <template v-else-if="pocket">
+                    <!-- Pocket Summary Card -->
+                    <div class="pocket-summary-card">
+                        <div class="pocket-summary-header">
+                            <span class="pocket-emoji">{{ pocket.emoji }}</span>
+                            <span class="pocket-name">{{ pocket.name }}</span>
+                        </div>
 
-                <div class="transaction-list">
-                    <div class="transaction-card" v-for="tx in transactions" :key="tx.id">
-                        <div class="transaction-item">
-                            <div class="transaction-info">
-                                <p class="transaction-name">{{ tx.name }}</p>
-                                <p class="transaction-date">{{ tx.date }}</p>
-                            </div>
-                            <p class="transaction-amount" :class="tx.type">
-                                {{ tx.type === 'expense' ? '- ' : '+ ' }}IDR {{ formatAmount(tx.amount) }}
-                            </p>
+                        <div class="pocket-balance">
+                            IDR {{ formatAmount(pocket.used) }}<span class="pocket-limit">/IDR {{
+                                formatAmount(pocket.budget_limit) }}</span>
+                        </div>
+
+                        <div class="pocket-desc">{{ pocket.description }}</div>
+
+                        <div class="pocket-progress-bar">
+                            <div class="pocket-progress-fill" :style="{ width: progressPercent + '%' }" />
+                        </div>
+
+                        <div class="pocket-reached">
+                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} used
                         </div>
                     </div>
-                </div>
+
+                    <!-- Transaction History -->
+                    <div class="section-title">Transaction History</div>
+
+                    <div class="transaction-list">
+                        <div v-if="transactions.length === 0" class="empty-transactions">
+                            <p>No transactions yet</p>
+                        </div>
+                        <div class="transaction-card" v-for="tx in transactions" :key="tx.id">
+                            <div class="transaction-item">
+                                <div class="transaction-info">
+                                    <p class="transaction-name">{{ tx.note || 'Expense' }}</p>
+                                    <p class="transaction-date">{{ formatDate(tx.date) }}</p>
+                                </div>
+                                <p class="transaction-amount expense">
+                                    - IDR {{ formatAmount(tx.amount) }}
+                                </p>
+                            </div>
+                        </div>
+                    </div>
+                </template>
 
             </div>
         </ion-content>
@@ -51,31 +60,43 @@
 </template>
 
 <script setup lang="ts">
-import { computed } from 'vue'
-import { IonPage, IonContent } from '@ionic/vue'
+import { ref, computed, onMounted } from 'vue'
+import { IonPage, IonContent, IonSpinner } from '@ionic/vue'
+import { useRoute } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
+import { usePocketStore } from '@/stores/pocket'
+import { useTransactionStore } from '@/stores/transaction'
 
-const pocket = {
-    id: 1,
-    emoji: '⛽',
-    name: 'Food',
-    used: 1000000,
-    limit: 1500000,
-    reached: 200000,
-    description: 'Food, snack, etc',
-}
+const route = useRoute()
+const pocketStore = usePocketStore()
+const transactionStore = useTransactionStore()
 
-const transactions = [
-    { id: 1, name: 'Nasi Goreng', date: '17/04/23', amount: 40000, type: 'expense' },
-    { id: 2, name: 'Mc. Donald', date: '17/04/23', amount: 50000, type: 'expense' },
-]
+const pocketId = route.params.id as string
+const loading = ref(false)
+
+const pocket = computed(() => pocketStore.pockets.find(p => p.id === pocketId))
+const transactions = computed(() => transactionStore.pocketActivities)
 
 const progressPercent = computed(() => {
-    if (!pocket.limit) return 0
-    return Math.min((pocket.used / pocket.limit) * 100, 100)
+    if (!pocket.value?.budget_limit) return 0
+    return Math.min((pocket.value.used / pocket.value.budget_limit) * 100, 100)
 })
 
-const formatAmount = (value: number) => value.toLocaleString('id-ID')
+onMounted(async () => {
+    loading.value = true
+    try {
+        if (pocketStore.pockets.length === 0) await pocketStore.fetchPockets()
+        await transactionStore.fetchPocketActivities(pocketId)
+    } finally {
+        loading.value = false
+    }
+})
+
+const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
+const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
 </script>
 
 <style scoped>

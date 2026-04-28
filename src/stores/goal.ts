@@ -8,6 +8,7 @@ export interface Goal {
     target_amount: number
     reached: number
     description: string
+    image_url: string | null
 }
 
 export const useGoalStore = defineStore('goal', () => {
@@ -24,12 +25,12 @@ export const useGoalStore = defineStore('goal', () => {
         }
     }
 
-    async function createGoal(data: { name: string; target_amount: number; description: string }) {
+    async function createGoal(data: Parameters<typeof goalService.createGoal>[0]) {
         const res = await goalService.createGoal(data)
         goals.value.push(res.data.data)
     }
 
-    async function updateGoal(id: string, data: { name: string; target_amount: number; description: string }) {
+    async function updateGoal(id: string, data: Parameters<typeof goalService.updateGoal>[1]) {
         const res = await goalService.updateGoal(id, data)
         const idx = goals.value.findIndex(g => g.id === id)
         if (idx !== -1) goals.value[idx] = res.data.data
@@ -40,5 +41,12 @@ export const useGoalStore = defineStore('goal', () => {
         goals.value = goals.value.filter(g => g.id !== id)
     }
 
-    return { goals, loading, fetchGoals, createGoal, updateGoal, deleteGoal }
+    async function topUpGoal(id: string, data: { wallet_id?: string | null; amount: number; note?: string }) {
+        const res = await goalService.topUpGoal(id, data)
+        const idx = goals.value.findIndex(g => g.id === id)
+        if (idx !== -1) goals.value[idx] = res.data.data
+        return res.data.data
+    }
+
+    return { goals, loading, fetchGoals, createGoal, updateGoal, deleteGoal, topUpGoal }
 })

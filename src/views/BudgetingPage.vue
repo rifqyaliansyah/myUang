@@ -21,11 +21,16 @@
                         </div>
 
                         <div class="pocket-name">{{ pocket.name }}</div>
-                        <div class="pocket-amount">IDR {{ formatAmount(pocket.used) }}</div>
+                        <div class="pocket-amount" :class="{ 'over-budget': pocket.used >= pocket.budget_limit }">
+                            IDR {{ formatAmount(pocket.used) }}
+                        </div>
 
                         <div class="pocket-progress-wrapper">
                             <div class="pocket-progress-bar">
-                                <div class="pocket-progress-fill" :style="{ width: progressPercent(pocket) + '%' }" />
+                                <div class="pocket-progress-fill" :style="{
+                                    width: progressPercent(pocket) + '%',
+                                    backgroundColor: pocket.used >= pocket.budget_limit ? 'var(--color-red)' : '#3077E3'
+                                }" />
                             </div>
                         </div>
 
@@ -65,7 +70,7 @@
 
         <!-- FAB Button -->
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
-            <ion-fab-button class="fab-btn" @click="handleAddPocket">
+            <ion-fab-button class="fab-btn" @click="handleAddRecord">
                 <ion-icon :icon="addOutline" class="fab-icon" />
             </ion-fab-button>
         </ion-fab>
@@ -150,6 +155,7 @@ const handleDelete = (pocket: Pocket) => {
     showDeleteAlert.value = true
 }
 const handleAddPocket = () => router.push('/add-pocket')
+const handleAddRecord = () => router.push('/add-money-record')
 </script>
 
 <style scoped>
@@ -339,6 +345,10 @@ const handleAddPocket = () => router.push('/add-pocket')
     display: flex;
     justify-content: center;
     padding: 48px 0;
+}
+
+.over-budget {
+    color: var(--color-red);
 }
 </style>
 
