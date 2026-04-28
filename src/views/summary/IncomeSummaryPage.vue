@@ -14,39 +14,23 @@
                 </div>
 
                 <!-- Income List -->
-                <div class="transaction-list">
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Gaji Bulanan</p>
-                                    <p class="transaction-date">15/04/23</p>
-                                </div>
-                                <p class="transaction-amount income">+ IDR 8.000.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                <div v-if="transactionStore.loading" class="loading-wrapper">
+                    <ion-spinner name="crescent" />
+                </div>
 
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Freelance Design</p>
-                                    <p class="transaction-date">10/04/23</p>
-                                </div>
-                                <p class="transaction-amount income">+ IDR 2.500.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                <div v-else class="transaction-list">
+                    <div v-if="incomes.length === 0" class="empty-tx">
+                        <p>No income yet</p>
+                    </div>
 
-                    <ion-card class="transaction-card">
+                    <ion-card class="transaction-card" v-for="tx in incomes" :key="tx.id">
                         <ion-card-content>
                             <div class="transaction-item">
                                 <div class="transaction-info">
-                                    <p class="transaction-name">Bonus Proyek</p>
-                                    <p class="transaction-date">05/04/23</p>
+                                    <p class="transaction-name">{{ tx.note || 'Income' }}</p>
+                                    <p class="transaction-date">{{ formatDate(tx.date) }}</p>
                                 </div>
-                                <p class="transaction-amount income">+ IDR 1.000.000</p>
+                                <p class="transaction-amount income">+ IDR {{ formatAmount(tx.amount) }}</p>
                             </div>
                         </ion-card-content>
                     </ion-card>
@@ -57,9 +41,34 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent } from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner } from '@ionic/vue'
+import { useTransactionStore } from '@/stores/transaction'
+import { useWalletStore } from '@/stores/wallet'
+import { computed, onMounted } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import { chevronDownOutline } from 'ionicons/icons'
+
+const transactionStore = useTransactionStore()
+const walletStore = useWalletStore()
+
+const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
+
+const incomes = computed(() =>
+    transactionStore.transactions.filter(tx => tx.type === 'income')
+)
+
+onMounted(async () => {
+    if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
+    if (activeWallet.value) {
+        await transactionStore.fetchTransactions({ walletId: activeWallet.value.id })
+    }
+})
+
+const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
+const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
 </script>
 
 <style scoped>
@@ -168,5 +177,18 @@ import { chevronDownOutline } from 'ionicons/icons'
 
 .transaction-amount.expense {
     color: var(--color-red);
+}
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+.empty-tx {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--color-black-60);
+    font-size: 16px;
 }
 </style>

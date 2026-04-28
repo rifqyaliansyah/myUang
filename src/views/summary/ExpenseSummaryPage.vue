@@ -14,39 +14,23 @@
                 </div>
 
                 <!-- Expense List -->
-                <div class="transaction-list">
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Nasi Goreng</p>
-                                    <p class="transaction-date">17/04/23</p>
-                                </div>
-                                <p class="transaction-amount expense">- IDR 40.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                <div v-if="transactionStore.loading" class="loading-wrapper">
+                    <ion-spinner name="crescent" />
+                </div>
 
-                    <ion-card class="transaction-card">
-                        <ion-card-content>
-                            <div class="transaction-item">
-                                <div class="transaction-info">
-                                    <p class="transaction-name">Bensin Motor</p>
-                                    <p class="transaction-date">16/04/23</p>
-                                </div>
-                                <p class="transaction-amount expense">- IDR 50.000</p>
-                            </div>
-                        </ion-card-content>
-                    </ion-card>
+                <div v-else class="transaction-list">
+                    <div v-if="expenses.length === 0" class="empty-tx">
+                        <p>No expenses yet</p>
+                    </div>
 
-                    <ion-card class="transaction-card">
+                    <ion-card class="transaction-card" v-for="tx in expenses" :key="tx.id">
                         <ion-card-content>
                             <div class="transaction-item">
                                 <div class="transaction-info">
-                                    <p class="transaction-name">Belanja Bulanan</p>
-                                    <p class="transaction-date">14/04/23</p>
+                                    <p class="transaction-name">{{ txLabel(tx) }}</p>
+                                    <p class="transaction-date">{{ formatDate(tx.date) }}</p>
                                 </div>
-                                <p class="transaction-amount expense">- IDR 250.000</p>
+                                <p class="transaction-amount expense">- IDR {{ formatAmount(tx.amount) }}</p>
                             </div>
                         </ion-card-content>
                     </ion-card>
@@ -57,9 +41,41 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent } from '@ionic/vue'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner } from '@ionic/vue'
+import { useRouter } from 'vue-router'
+import { useTransactionStore } from '@/stores/transaction'
+import { useWalletStore } from '@/stores/wallet'
+import { computed, onMounted } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import { chevronDownOutline } from 'ionicons/icons'
+
+const transactionStore = useTransactionStore()
+const walletStore = useWalletStore()
+
+const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
+
+const expenses = computed(() =>
+    transactionStore.transactions.filter(tx => tx.type === 'expense' || tx.type === 'goal_topup')
+)
+
+onMounted(async () => {
+    if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
+    if (activeWallet.value) {
+        await transactionStore.fetchTransactions({ walletId: activeWallet.value.id })
+    }
+})
+
+const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
+const formatDate = (dateStr: string) => {
+    const d = new Date(dateStr)
+    return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })
+}
+
+const txLabel = (tx: any) => {
+    if (tx.note) return tx.note
+    if (tx.type === 'goal_topup') return `Goals: ${tx.goal_name ?? 'Goal'}`
+    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : 'Expense'
+}
 </script>
 
 <style scoped>
@@ -168,5 +184,18 @@ import { chevronDownOutline } from 'ionicons/icons'
 
 .transaction-amount.income {
     color: var(--color-green);
+}
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    padding: 48px 0;
+}
+
+.empty-tx {
+    text-align: center;
+    padding: 48px 0;
+    color: var(--color-black-60);
+    font-size: 16px;
 }
 </style>
