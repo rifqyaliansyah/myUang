@@ -9,7 +9,10 @@
                         <span class="brand-sub">by Me</span>
                     </div>
                     <div class="hero-actions">
-                        <ion-icon :icon="notificationsOutline" class="notif-icon" @click="goToNotification" />
+                        <div class="notif-wrapper" @click="goToNotification">
+                            <ion-icon :icon="notificationsOutline" class="notif-icon" />
+                            <span class="notif-badge" v-if="notifStore.unreadCount() > 0" />
+                        </div>
                         <div class="avatar" @click="router.push('/profile')">
                             <img :src="avatarUrl" alt="avatar" />
                         </div>
@@ -153,6 +156,7 @@ import { useAuthStore } from '@/stores/auth'
 import { useTransactionStore } from '@/stores/transaction'
 import { usePocketStore } from '@/stores/pocket'
 import { useGoalStore } from '@/stores/goal'
+import { useNotificationStore } from '@/stores/notification'
 import profileService from '@/services/profile.service'
 import { onMounted, computed, ref, watch } from 'vue'
 import {
@@ -166,6 +170,7 @@ const auth = useAuthStore()
 const transactionStore = useTransactionStore()
 const pocketStore = usePocketStore()
 const goalStore = useGoalStore()
+const notifStore = useNotificationStore()
 const isDropdownOpen = ref(false)
 
 const now = new Date()
@@ -188,6 +193,7 @@ onMounted(async () => {
     await Promise.all([
         pocketStore.fetchPockets(),
         goalStore.fetchGoals(),
+        notifStore.fetchNotifications()
     ])
 
     try {
@@ -655,5 +661,21 @@ const goToNotification = () => router.push('/notification')
     letter-spacing: -0.02em;
     color: var(--color-black-60);
     margin: 0;
+}
+
+.notif-wrapper {
+    position: relative;
+    cursor: pointer;
+}
+
+.notif-badge {
+    position: absolute;
+    top: 0;
+    right: 0;
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background-color: var(--color-red);
+    border: 1.5px solid #3077E3;
 }
 </style>

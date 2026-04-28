@@ -11,6 +11,7 @@ import SetupPinPage from '../views/auth/SetupPinPage.vue'
 import VerifyPinPage from '../views/auth/VerifyPinPage.vue'
 import WelcomePage from '../views/auth/WelcomePage.vue'
 import NotificationPage from '../views/NotificationPage.vue'
+import NotificationDetailPage from '../views/NotificationDetailPage.vue'
 import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue'
 import IncomeSummaryPage from '../views/summary/IncomeSummaryPage.vue'
 import AddMoneyRecordPage from '../views/AddMoneyRecordPage.vue'
@@ -90,6 +91,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/notification',
     name: 'Notification',
     component: NotificationPage
+  },
+  {
+    path: '/notification/:id',
+    name: 'Notification Detail',
+    component: NotificationDetailPage
   },
   {
     path: '/expense-summary',
