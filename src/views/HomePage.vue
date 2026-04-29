@@ -65,7 +65,7 @@
                 <div class="summary-grid">
                     <ion-card class="summary-card clickable" @click="router.push('/income-summary')">
                         <ion-card-content>
-                            <span class="card-emoji">🤑</span>
+                            <ion-icon :icon="trendingUpOutline" class="card-icon income-icon" />
                             <div class="card-label income">
                                 <ion-icon :icon="caretUpOutline" class="trend-icon" />
                                 <span>Income</span>
@@ -76,7 +76,7 @@
 
                     <ion-card class="summary-card clickable" @click="router.push('/expense-summary')">
                         <ion-card-content>
-                            <span class="card-emoji">💸</span>
+                            <ion-icon :icon="trendingDownOutline" class="card-icon expense-icon" />
                             <div class="card-label expense">
                                 <ion-icon :icon="caretDownOutline" class="trend-icon" />
                                 <span>Expense</span>
@@ -87,7 +87,7 @@
 
                     <ion-card class="summary-card clickable" @click="router.push('/budgeting')">
                         <ion-card-content>
-                            <span class="card-emoji">🪨</span>
+                            <ion-icon :icon="storefrontOutline" class="card-icon neutral-icon" />
                             <div class="card-label neutral">
                                 <span>Pockets</span>
                             </div>
@@ -97,7 +97,7 @@
 
                     <ion-card class="summary-card clickable" @click="router.push('/goals')">
                         <ion-card-content>
-                            <span class="card-emoji">📌</span>
+                            <ion-icon :icon="flagOutline" class="card-icon neutral-icon" />
                             <div class="card-label neutral">
                                 <span>Goals</span>
                             </div>
@@ -161,7 +161,8 @@ import profileService from '@/services/profile.service'
 import { onMounted, computed, ref, watch } from 'vue'
 import {
     chevronDownOutline, notificationsOutline,
-    caretUpOutline, caretDownOutline, addOutline, walletOutline
+    caretUpOutline, caretDownOutline, addOutline, walletOutline,
+    trendingUpOutline, trendingDownOutline, storefrontOutline, flagOutline
 } from 'ionicons/icons'
 
 const router = useRouter()
@@ -427,9 +428,21 @@ const goToNotification = () => router.push('/notification')
     cursor: pointer;
 }
 
-.card-emoji {
+.card-icon {
     font-size: 32px;
     line-height: 48px;
+}
+
+.income-icon {
+    color: var(--color-green);
+}
+
+.expense-icon {
+    color: var(--color-red);
+}
+
+.neutral-icon {
+    color: var(--color-black-60);
 }
 
 .card-label {
