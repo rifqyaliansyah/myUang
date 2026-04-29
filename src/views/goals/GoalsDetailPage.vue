@@ -5,18 +5,15 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Loading -->
                 <div v-if="loading" class="loading-wrapper">
                     <ion-spinner name="crescent" />
                 </div>
 
                 <template v-else-if="goal">
-                    <!-- Cover Image -->
                     <div class="goal-cover" v-if="goal.image_url">
                         <img :src="goal.image_url" :alt="goal.name" class="cover-img" />
                     </div>
 
-                    <!-- Goal Info -->
                     <div class="goal-info-section">
                         <div class="goal-name">{{ goal.name }}</div>
                         <div class="goal-desc">{{ goal.description }}</div>
@@ -31,7 +28,6 @@
                         </div>
                     </div>
 
-                    <!-- Goal Money Record Activities -->
                     <div class="section-title">Goal Money Record Activities</div>
 
                     <div class="transaction-list">
@@ -53,26 +49,26 @@
                 </template>
 
             </div>
+
+            <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasMore">
+                <ion-infinite-scroll-content loading-spinner="crescent" loading-text="" />
+            </ion-infinite-scroll>
         </ion-content>
 
-        <!-- FAB Top-up -->
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
             <ion-fab-button class="fab-btn" @click="showTopUpModal = true">
                 <ion-icon :icon="addOutline" class="fab-icon" />
             </ion-fab-button>
         </ion-fab>
 
-        <!-- Top-up Modal -->
         <ion-modal ref="topUpModalRef" :is-open="showTopUpModal" :initial-breakpoint="0.55" :breakpoints="[0, 0.55]"
             handle="false" @didDismiss="showTopUpModal = false" class="topup-modal">
             <ion-content class="modal-content">
                 <div class="modal-wrapper">
-                    <!-- Handle -->
                     <div class="sheet-handle" ref="handleRef" />
 
                     <div class="modal-title">Top-up Goal</div>
 
-                    <!-- Source Toggle -->
                     <div class="source-toggle">
                         <button class="toggle-btn" :class="{ active: sourceMode === 'wallet' }"
                             @click="sourceMode = 'wallet'">
@@ -84,7 +80,6 @@
                         </button>
                     </div>
 
-                    <!-- Wallet Info (hanya tampil jika mode wallet) -->
                     <div class="modal-sub" v-if="sourceMode === 'wallet'">
                         From: <strong>{{ activeWallet?.name ?? '-' }}</strong>
                         (IDR {{ formatAmount(activeWallet?.balance ?? 0) }})
@@ -93,7 +88,6 @@
                         Amount will be added directly without deducting any wallet.
                     </div>
 
-                    <!-- Amount -->
                     <div class="form-group">
                         <ion-label>Amount</ion-label>
                         <div class="input-wrapper amount-wrapper">
@@ -119,6 +113,7 @@ import { ref, computed, onMounted, watch, nextTick } from 'vue'
 import {
     IonPage, IonContent, IonFab, IonFabButton, IonIcon,
     IonModal, IonLabel, IonInput, IonButton, IonSpinner,
+    IonInfiniteScroll, IonInfiniteScrollContent,
     toastController, createGesture
 } from '@ionic/vue'
 import { useRoute } from 'vue-router'
@@ -140,6 +135,9 @@ const displayTopUpAmount = ref('')
 const isSubmitting = ref(false)
 const handleRef = ref()
 const topUpModalRef = ref()
+const hasMore = ref(true)
+const LIMIT = 10
+let currentOffset = 0
 
 const sourceMode = ref<'wallet' | 'manual'>('wallet')
 
@@ -185,11 +183,26 @@ onMounted(async () => {
     try {
         if (goalStore.goals.length === 0) await goalStore.fetchGoals()
         if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
-        await transactionStore.fetchGoalActivities(goalId)
+        transactionStore.goalActivities = []
+        hasMore.value = true
+        currentOffset = 0
+        const data = await transactionStore.fetchGoalActivities(goalId)
+        if (data.length < LIMIT) hasMore.value = false
     } finally {
         loading.value = false
     }
 })
+
+async function loadMore(ev: any) {
+    const nextOffset = currentOffset + LIMIT
+    try {
+        const data = await transactionStore.fetchMoreGoalActivities(goalId, nextOffset)
+        currentOffset = nextOffset
+        if (data.length < LIMIT) hasMore.value = false
+    } finally {
+        ev.target.complete()
+    }
+}
 
 async function showToast(message: string, color = 'danger') {
     const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
@@ -220,7 +233,11 @@ const handleTopUp = async () => {
             await walletStore.fetchWallets()
         }
 
-        await transactionStore.fetchGoalActivities(goalId)
+        transactionStore.goalActivities = []
+        hasMore.value = true
+        currentOffset = 0
+        const data = await transactionStore.fetchGoalActivities(goalId)
+        if (data.length < LIMIT) hasMore.value = false
 
         showTopUpModal.value = false
         showToast('Top-up successful', 'success')

@@ -37,10 +37,10 @@
                     <div class="section-title">Transaction History</div>
 
                     <div class="transaction-list">
-                        <div v-if="transactions.length === 0" class="empty-transactions">
+                        <div v-if="localTransactions.length === 0" class="empty-transactions">
                             <p>No transactions yet</p>
                         </div>
-                        <div class="transaction-card" v-for="tx in transactions" :key="tx.id"
+                        <div class="transaction-card" v-for="tx in localTransactions" :key="tx.id"
                             @click="router.push(`/detail-transaction/${tx.id}`)" style="cursor: pointer;">
                             <div class="transaction-item">
                                 <div class="transaction-info">
@@ -56,30 +56,35 @@
                 </template>
 
             </div>
+            <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasMore">
+                <ion-infinite-scroll-content loading-spinner="crescent" loading-text="" />
+            </ion-infinite-scroll>
         </ion-content>
     </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
-import { IonPage, IonContent, IonSpinner } from '@ionic/vue'
-import { useRoute } from 'vue-router'
+import { IonPage, IonContent, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/vue'
+import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { usePocketStore } from '@/stores/pocket'
-import { useTransactionStore } from '@/stores/transaction'
-import { useRouter } from 'vue-router'
+import transactionService from '@/services/transaction.service'
+import type { Transaction } from '@/stores/transaction'
 
 const router = useRouter()
-
 const route = useRoute()
 const pocketStore = usePocketStore()
-const transactionStore = useTransactionStore()
 
 const pocketId = route.params.id as string
 const loading = ref(false)
+const hasMore = ref(true)
+const LIMIT = 10
+let currentOffset = 0
 
 const pocket = computed(() => pocketStore.pockets.find(p => p.id === pocketId))
-const transactions = computed(() => transactionStore.pocketActivities)
+
+const localTransactions = ref<Transaction[]>([])
 
 const progressPercent = computed(() => {
     if (!pocket.value?.budget_limit) return 0
@@ -90,11 +95,39 @@ onMounted(async () => {
     loading.value = true
     try {
         if (pocketStore.pockets.length === 0) await pocketStore.fetchPockets()
-        await transactionStore.fetchPocketActivities(pocketId)
+        await loadInitial()
     } finally {
         loading.value = false
     }
 })
+
+async function loadInitial() {
+    hasMore.value = true
+    currentOffset = 0
+    const res = await transactionService.getTransactions({
+        pocketId,
+        limit: LIMIT,
+        offset: 0,
+    })
+    localTransactions.value = res.data.data
+    if (res.data.data.length < LIMIT) hasMore.value = false
+}
+
+async function loadMore(ev: any) {
+    const nextOffset = currentOffset + LIMIT
+    try {
+        const res = await transactionService.getTransactions({
+            pocketId,
+            limit: LIMIT,
+            offset: nextOffset,
+        })
+        localTransactions.value = [...localTransactions.value, ...res.data.data]
+        currentOffset = nextOffset
+        if (res.data.data.length < LIMIT) hasMore.value = false
+    } finally {
+        ev.target.complete()
+    }
+}
 
 const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
 const formatDate = (dateStr: string) => {

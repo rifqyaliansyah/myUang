@@ -1,7 +1,8 @@
 import api from './api'
 
 const notificationService = {
-    getNotifications: () => api.get('/notifications'),
+    getNotifications: (params?: { limit?: number; offset?: number }) =>
+        api.get('/notifications', { params }),
     getNotificationDetail: (id: string) => api.get(`/notifications/${id}`),
     markOneRead: (id: string) => api.patch(`/notifications/${id}/read`),
     markAllRead: () => api.patch('/notifications/mark-all-read'),

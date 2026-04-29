@@ -11,6 +11,8 @@ export interface Notification {
     created_at: string
 }
 
+const LIMIT = 10
+
 export const useNotificationStore = defineStore('notification', () => {
     const notifications = ref<Notification[]>([])
     const loading = ref(false)
@@ -18,11 +20,18 @@ export const useNotificationStore = defineStore('notification', () => {
     async function fetchNotifications() {
         loading.value = true
         try {
-            const res = await notificationService.getNotifications()
+            const res = await notificationService.getNotifications({ limit: LIMIT, offset: 0 })
             notifications.value = res.data.data
+            return res.data.data
         } finally {
             loading.value = false
         }
+    }
+
+    async function fetchMoreNotifications(offset: number) {
+        const res = await notificationService.getNotifications({ limit: LIMIT, offset })
+        notifications.value = [...notifications.value, ...res.data.data]
+        return res.data.data
     }
 
     async function markAllRead() {
@@ -48,5 +57,15 @@ export const useNotificationStore = defineStore('notification', () => {
 
     const unreadCount = () => notifications.value.filter(n => !n.is_read).length
 
-    return { notifications, loading, fetchNotifications, markAllRead, removeAll, markOneRead, unreadCount, deleteOne }
+    return {
+        notifications,
+        loading,
+        fetchNotifications,
+        fetchMoreNotifications,
+        markAllRead,
+        removeAll,
+        markOneRead,
+        unreadCount,
+        deleteOne,
+    }
 })

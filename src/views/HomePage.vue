@@ -121,7 +121,7 @@
                             <p>No transactions yet</p>
                         </div>
 
-                        <ion-card class="transaction-card clickable" v-for="tx in transactionStore.recentTransactions"
+                        <ion-card class="transaction-card clickable" v-for="tx in transactionStore.transactions"
                             :key="tx.id" @click="router.push(`/detail-transaction/${tx.id}`)">
                             <ion-card-content>
                                 <div class="transaction-item">
@@ -137,6 +137,10 @@
                         </ion-card>
                     </template>
                 </div>
+
+                <ion-infinite-scroll @ionInfinite="onInfiniteScroll" :disabled="!transactionStore.hasMore">
+                    <ion-infinite-scroll-content loading-spinner="crescent" loading-text="" />
+                </ion-infinite-scroll>
             </div>
         </ion-content>
 
@@ -149,7 +153,11 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonFab, IonFabButton, IonPopover, IonSpinner } from '@ionic/vue'
+import {
+    IonPage, IonContent, IonIcon, IonCard, IonCardContent,
+    IonFab, IonFabButton, IonPopover, IonSpinner,
+    IonInfiniteScroll, IonInfiniteScrollContent
+} from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import { useWalletStore } from '@/stores/wallet'
 import { useAuthStore } from '@/stores/auth'
@@ -164,6 +172,7 @@ import {
     caretUpOutline, caretDownOutline, addOutline, walletOutline,
     trendingUpOutline, trendingDownOutline, storefrontOutline, flagOutline
 } from 'ionicons/icons'
+import { nextTick } from 'vue'
 
 const router = useRouter()
 const walletStore = useWalletStore()
@@ -241,6 +250,11 @@ const txLabel = (tx: any) => {
 }
 
 const goToNotification = () => router.push('/notification')
+
+const onInfiniteScroll = async (ev: any) => {
+    await transactionStore.fetchMoreTransactions()
+    ev.target.complete()
+}
 </script>
 
 <style scoped>
@@ -691,5 +705,13 @@ const goToNotification = () => router.push('/notification')
     border-radius: 50%;
     background-color: var(--color-red);
     border: 1.5px solid #3077E3;
+}
+
+.loading-wrapper {
+    display: flex;
+    justify-content: center;
+    align-items: center;
+    padding: 48px 0;
+    width: 100%;
 }
 </style>

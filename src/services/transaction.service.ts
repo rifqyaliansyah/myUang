@@ -13,9 +13,12 @@ const transactionService = {
     getTransactions: (params?: {
         walletId?: string
         pocketId?: string
+        goalId?: string
         month?: number
         year?: number
         type?: 'income' | 'expense' | 'goal_topup'
+        limit?: number
+        offset?: number
     }) => api.get('/transactions', { params }),
 
     getSummary: (walletId: string, month: number, year: number) =>

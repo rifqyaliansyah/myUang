@@ -44,14 +44,22 @@
                 </template>
 
             </div>
+
+            <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasMore">
+                <ion-infinite-scroll-content loading-spinner="crescent" loading-text="" />
+            </ion-infinite-scroll>
         </ion-content>
     </ion-page>
 </template>
 
 <script setup lang="ts">
-import { onMounted } from 'vue'
+import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonSpinner, IonList, IonItem, IonItemSliding, IonItemOptions, IonItemOption, IonIcon } from '@ionic/vue'
+import {
+    IonPage, IonContent, IonSpinner, IonList, IonItem,
+    IonItemSliding, IonItemOptions, IonItemOption, IonIcon,
+    IonInfiniteScroll, IonInfiniteScrollContent
+} from '@ionic/vue'
 import { trashOutline } from 'ionicons/icons'
 import AppHeader from './components/AppHeader.vue'
 import { useNotificationStore } from '@/stores/notification'
@@ -59,7 +67,27 @@ import { useNotificationStore } from '@/stores/notification'
 const router = useRouter()
 const notifStore = useNotificationStore()
 
-onMounted(() => notifStore.fetchNotifications())
+const hasMore = ref(true)
+const LIMIT = 10
+let currentOffset = 0
+
+onMounted(async () => {
+    hasMore.value = true
+    currentOffset = 0
+    const data = await notifStore.fetchNotifications()
+    if (data.length < LIMIT) hasMore.value = false
+})
+
+async function loadMore(ev: any) {
+    const nextOffset = currentOffset + LIMIT
+    try {
+        const data = await notifStore.fetchMoreNotifications(nextOffset)
+        currentOffset = nextOffset
+        if (data.length < LIMIT) hasMore.value = false
+    } finally {
+        ev.target.complete()
+    }
+}
 
 const markAllRead = async () => {
     await notifStore.markAllRead()
@@ -67,6 +95,8 @@ const markAllRead = async () => {
 
 const removeAll = async () => {
     await notifStore.removeAll()
+    hasMore.value = false
+    currentOffset = 0
 }
 
 const formatTime = (dateStr: string) => {

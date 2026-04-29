@@ -22,12 +22,18 @@ export interface Summary {
     total_expense: number
 }
 
+const LIMIT = 10
+
 export const useTransactionStore = defineStore('transaction', () => {
     const transactions = ref<Transaction[]>([])
     const goalActivities = ref<Transaction[]>([])
     const pocketActivities = ref<Transaction[]>([])
     const summary = ref<Summary>({ total_income: 0, total_expense: 0 })
     const loading = ref(false)
+    const loadingMore = ref(false)
+    const hasMore = ref(true)
+    const currentOffset = ref(0)
+    const currentWalletId = ref<string | undefined>(undefined)
 
     async function fetchTransactions(params?: {
         walletId?: string
@@ -36,17 +42,64 @@ export const useTransactionStore = defineStore('transaction', () => {
         type?: 'income' | 'expense' | 'goal_topup'
     }) {
         loading.value = true
+        hasMore.value = true
+        currentOffset.value = 0
+        currentWalletId.value = params?.walletId
+
         try {
-            const res = await transactionService.getTransactions(params)
+            const res = await transactionService.getTransactions({
+                ...params,
+                limit: LIMIT,
+                offset: 0,
+            })
             transactions.value = res.data.data
+            if (res.data.data.length < LIMIT) hasMore.value = false
         } finally {
             loading.value = false
         }
     }
 
+    async function fetchMoreTransactions() {
+        if (loadingMore.value || !hasMore.value) return
+
+        loadingMore.value = true
+        const nextOffset = currentOffset.value + LIMIT
+
+        try {
+            const res = await transactionService.getTransactions({
+                walletId: currentWalletId.value,
+                limit: LIMIT,
+                offset: nextOffset,
+            })
+            const newData: Transaction[] = res.data.data
+            transactions.value = [...transactions.value, ...newData]
+            currentOffset.value = nextOffset
+            if (newData.length < LIMIT) hasMore.value = false
+        } finally {
+            loadingMore.value = false
+        }
+    }
+
     async function fetchGoalActivities(goalId: string) {
-        const res = await transactionService.getTransactions({ type: 'goal_topup' })
-        goalActivities.value = res.data.data.filter((t: Transaction) => t.goal_id === goalId)
+        const res = await transactionService.getTransactions({
+            goalId,
+            type: 'goal_topup',
+            limit: 10,
+            offset: 0,
+        })
+        goalActivities.value = res.data.data
+        return res.data.data
+    }
+
+    async function fetchMoreGoalActivities(goalId: string, offset: number) {
+        const res = await transactionService.getTransactions({
+            goalId,
+            type: 'goal_topup',
+            limit: 10,
+            offset,
+        })
+        goalActivities.value = [...goalActivities.value, ...res.data.data]
+        return res.data.data
     }
 
     async function fetchPocketActivities(pocketId: string) {
@@ -78,9 +131,13 @@ export const useTransactionStore = defineStore('transaction', () => {
         pocketActivities,
         summary,
         loading,
+        loadingMore,
+        hasMore,
         recentTransactions,
         fetchTransactions,
+        fetchMoreTransactions,
         fetchGoalActivities,
+        fetchMoreGoalActivities,
         fetchPocketActivities,
         fetchSummary,
         createTransaction,

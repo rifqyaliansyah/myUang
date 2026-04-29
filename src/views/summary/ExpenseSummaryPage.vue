@@ -14,16 +14,16 @@
                 </div>
 
                 <!-- Expense List -->
-                <div v-if="transactionStore.loading" class="loading-wrapper">
+                <div v-if="loading" class="loading-wrapper">
                     <ion-spinner name="crescent" />
                 </div>
 
                 <div v-else class="transaction-list">
-                    <div v-if="expenses.length === 0" class="empty-tx">
+                    <div v-if="localTransactions.length === 0" class="empty-tx">
                         <p>No expenses yet</p>
                     </div>
 
-                    <ion-card class="transaction-card clickable" v-for="tx in expenses" :key="tx.id"
+                    <ion-card class="transaction-card clickable" v-for="tx in localTransactions" :key="tx.id"
                         @click="router.push(`/detail-transaction/${tx.id}`)">
                         <ion-card-content>
                             <div class="transaction-item">
@@ -37,36 +37,76 @@
                     </ion-card>
                 </div>
             </div>
+            <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasMore">
+                <ion-infinite-scroll-content loading-spinner="crescent" loading-text="" />
+            </ion-infinite-scroll>
         </ion-content>
     </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner } from '@ionic/vue'
-import { useRouter } from 'vue-router'
-import { useTransactionStore } from '@/stores/transaction'
+import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/vue'
 import { useWalletStore } from '@/stores/wallet'
-import { computed, onMounted } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import { chevronDownOutline } from 'ionicons/icons'
+import { useRouter } from 'vue-router'
+import transactionService from '@/services/transaction.service'
+import type { Transaction } from '@/stores/transaction'
 
 const router = useRouter()
-
-const transactionStore = useTransactionStore()
 const walletStore = useWalletStore()
-
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
 
-const expenses = computed(() =>
-    transactionStore.transactions.filter(tx => tx.type === 'expense' || tx.type === 'goal_topup')
-)
+const localTransactions = ref<Transaction[]>([])
+const loading = ref(false)
+const hasMore = ref(true)
+const LIMIT = 10
+let currentOffset = 0
 
 onMounted(async () => {
     if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
-    if (activeWallet.value) {
-        await transactionStore.fetchTransactions({ walletId: activeWallet.value.id })
-    }
+    await loadInitial()
 })
+
+async function loadInitial() {
+    if (!activeWallet.value) return
+    loading.value = true
+    hasMore.value = true
+    currentOffset = 0
+    try {
+        const res = await transactionService.getTransactions({
+            walletId: activeWallet.value.id,
+            limit: LIMIT,
+            offset: 0,
+        })
+        localTransactions.value = res.data.data.filter(
+            (t: Transaction) => t.type === 'expense' || t.type === 'goal_topup'
+        )
+        if (res.data.data.length < LIMIT) hasMore.value = false
+    } finally {
+        loading.value = false
+    }
+}
+
+async function loadMore(ev: any) {
+    const nextOffset = currentOffset + LIMIT
+    try {
+        const res = await transactionService.getTransactions({
+            walletId: activeWallet.value?.id,
+            limit: LIMIT,
+            offset: nextOffset,
+        })
+        const filtered = res.data.data.filter(
+            (t: Transaction) => t.type === 'expense' || t.type === 'goal_topup'
+        )
+        localTransactions.value = [...localTransactions.value, ...filtered]
+        currentOffset = nextOffset
+        if (res.data.data.length < LIMIT) hasMore.value = false
+    } finally {
+        ev.target.complete()
+    }
+}
 
 const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
 const formatDate = (dateStr: string) => {
