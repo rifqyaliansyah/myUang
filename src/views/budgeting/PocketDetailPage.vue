@@ -40,7 +40,8 @@
                         <div v-if="transactions.length === 0" class="empty-transactions">
                             <p>No transactions yet</p>
                         </div>
-                        <div class="transaction-card" v-for="tx in transactions" :key="tx.id">
+                        <div class="transaction-card" v-for="tx in transactions" :key="tx.id"
+                            @click="router.push(`/detail-transaction/${tx.id}`)" style="cursor: pointer;">
                             <div class="transaction-item">
                                 <div class="transaction-info">
                                     <p class="transaction-name">{{ tx.note || 'Expense' }}</p>
@@ -66,6 +67,9 @@ import { useRoute } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { usePocketStore } from '@/stores/pocket'
 import { useTransactionStore } from '@/stores/transaction'
+import { useRouter } from 'vue-router'
+
+const router = useRouter()
 
 const route = useRoute()
 const pocketStore = usePocketStore()
@@ -223,6 +227,7 @@ const formatDate = (dateStr: string) => {
     padding: 16px;
     min-height: 84px;
     box-sizing: border-box;
+    cursor: pointer;
 }
 
 .transaction-item {

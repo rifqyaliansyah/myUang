@@ -23,7 +23,8 @@
                         <p>No expenses yet</p>
                     </div>
 
-                    <ion-card class="transaction-card" v-for="tx in expenses" :key="tx.id">
+                    <ion-card class="transaction-card clickable" v-for="tx in expenses" :key="tx.id"
+                        @click="router.push(`/detail-transaction/${tx.id}`)">
                         <ion-card-content>
                             <div class="transaction-item">
                                 <div class="transaction-info">
@@ -48,6 +49,8 @@ import { useWalletStore } from '@/stores/wallet'
 import { computed, onMounted } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
 import { chevronDownOutline } from 'ionicons/icons'
+
+const router = useRouter()
 
 const transactionStore = useTransactionStore()
 const walletStore = useWalletStore()
@@ -138,6 +141,7 @@ const txLabel = (tx: any) => {
     border-radius: 12px;
     box-shadow: none;
     --background: var(--color-bg-3);
+    cursor: pointer;
 }
 
 .transaction-card ion-card-content {

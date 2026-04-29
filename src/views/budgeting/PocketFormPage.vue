@@ -86,8 +86,8 @@ onMounted(async () => {
         if (pocket) {
             emoji.value = pocket.emoji
             name.value = pocket.name
-            amount.value = String(pocket.budget_limit)
-            displayAmount.value = pocket.budget_limit.toLocaleString('id-ID')
+            amount.value = String(Math.floor(pocket.budget_limit))
+            displayAmount.value = Math.floor(pocket.budget_limit).toLocaleString('id-ID')
             description.value = pocket.description
         }
     }

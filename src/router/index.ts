@@ -23,6 +23,7 @@ import GoalsFormPage from '../views/goals/GoalsFormPage.vue'
 import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue'
 import ProfileFormPage from '../views/profile/ProfileFormPage.vue'
 import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue'
+import TransactionDetailPage from '../views/TransactionDetailPage.vue'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
 const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin']
@@ -166,6 +167,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/language',
     name: 'Language',
     component: ChangeLanguagePage
+  },
+  {
+    path: '/detail-transaction/:id',
+    name: 'Transaction Detail',
+    component: TransactionDetailPage
   },
 ]
 

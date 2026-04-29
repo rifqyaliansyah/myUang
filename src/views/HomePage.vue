@@ -121,8 +121,8 @@
                             <p>No transactions yet</p>
                         </div>
 
-                        <ion-card class="transaction-card" v-for="tx in transactionStore.recentTransactions"
-                            :key="tx.id">
+                        <ion-card class="transaction-card clickable" v-for="tx in transactionStore.recentTransactions"
+                            :key="tx.id" @click="router.push(`/detail-transaction/${tx.id}`)">
                             <ion-card-content>
                                 <div class="transaction-item">
                                     <div class="transaction-info">
@@ -442,7 +442,7 @@ const goToNotification = () => router.push('/notification')
 }
 
 .neutral-icon {
-    color: var(--color-black-60);
+    color: var(--color-bg-1);
 }
 
 .card-label {
@@ -523,6 +523,7 @@ const goToNotification = () => router.push('/notification')
     border-radius: 12px;
     box-shadow: none;
     --background: var(--color-bg-3);
+    cursor: pointer;
 }
 
 .transaction-card ion-card-content {
