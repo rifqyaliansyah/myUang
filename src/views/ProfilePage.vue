@@ -50,8 +50,8 @@
                 </div>
 
                 <!-- Version -->
-                <div class="version-text">v1.4.11</div>
-                <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div>
+                <!-- <div class="version-text">v1.4.11</div>
+                <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div> -->
 
             </div>
         </ion-content>
@@ -114,8 +114,8 @@ const logoutButtons = computed(() => [
 
 const handleEditProfile = () => router.push('/edit-profile')
 const handleLanguage = () => router.push('/language')
-const handleAboutUs = () => console.log('About Us')
-const handleHelpCenter = () => console.log('Help Center')
+const handleAboutUs = () => router.push('/about-us')
+const handleHelpCenter = () => router.push('/help-center')
 const handleLogOut = () => { showLogoutAlert.value = true }
 </script>
 

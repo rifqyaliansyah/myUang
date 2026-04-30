@@ -24,6 +24,8 @@ import GoalsDetailPage from '../views/goals/GoalsDetailPage.vue'
 import ProfileFormPage from '../views/profile/ProfileFormPage.vue'
 import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue'
 import TransactionDetailPage from '../views/TransactionDetailPage.vue'
+import AboutUsPage from '../views/profile/AboutUsPage.vue'
+import HelpCenterPage from '../views/profile/HelpCenterPage.vue'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
 const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin']
@@ -173,6 +175,16 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Transaction Detail',
     component: TransactionDetailPage
   },
+  {
+    path: '/about-us',
+    name: 'About Us',
+    component: AboutUsPage
+  },
+  {
+    path: '/help-center',
+    name: 'Help Center',
+    component: HelpCenterPage
+  }
 ]
 
 const router = createRouter({
