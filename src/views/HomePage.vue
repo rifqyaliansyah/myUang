@@ -55,11 +55,24 @@
                 <!-- Summary Header -->
                 <div class="summary-header">
                     <span class="summary-title">Summary</span>
-                    <div class="summary-period">
-                        <span>This month</span>
-                        <ion-icon :icon="chevronDownOutline" class="period-chevron" />
+                    <div class="summary-period" id="period-trigger">
+                        <span>{{ selectedLabel }}</span>
+                        <ion-icon :icon="chevronDownOutline" class="period-chevron"
+                            :class="{ 'chevron-open': isPeriodOpen }" />
                     </div>
                 </div>
+
+                <ion-popover trigger="period-trigger" trigger-action="click" :dismiss-on-select="true"
+                    :show-backdrop="false" side="bottom" alignment="end" class="period-dropdown" :style="popoverStyle"
+                    @willPresent="isPeriodOpen = true" @willDismiss="isPeriodOpen = false">
+                    <ion-content class="popover-scroll">
+                        <div v-for="opt in PERIOD_OPTIONS" :key="opt.key" class="dropdown-item"
+                            :class="{ 'dropdown-item--active': selectedPeriod === opt.key }"
+                            @click="selectPeriod(opt.key)">
+                            <span class="dropdown-name">{{ opt.label }}</span>
+                        </div>
+                    </ion-content>
+                </ion-popover>
 
                 <!-- Summary Grid -->
                 <div class="summary-grid">
@@ -172,7 +185,9 @@ import {
     caretUpOutline, caretDownOutline, addOutline, walletOutline,
     trendingUpOutline, trendingDownOutline, storefrontOutline, flagOutline
 } from 'ionicons/icons'
-import { nextTick } from 'vue'
+import { usePeriodFilter, type PeriodKey } from '@/composables/usePeriodFilter'
+
+const { selectedPeriod, selectedLabel, isDropdownOpen: isPeriodOpen, periodParams, PERIOD_OPTIONS } = usePeriodFilter()
 
 const router = useRouter()
 const walletStore = useWalletStore()
@@ -193,9 +208,16 @@ const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
 
 const loadTransactionData = async (walletId: string) => {
     await Promise.all([
-        transactionStore.fetchTransactions({ walletId }),
+        transactionStore.fetchTransactions({ walletId, ...periodParams.value }),
         transactionStore.fetchSummary(walletId, currentMonth, currentYear),
     ])
+}
+
+const selectPeriod = async (key: PeriodKey) => {
+    selectedPeriod.value = key
+    if (activeWallet.value) {
+        await loadTransactionData(activeWallet.value.id)
+    }
 }
 
 onMounted(async () => {
@@ -713,5 +735,16 @@ const onInfiniteScroll = async (ev: any) => {
     align-items: center;
     padding: 48px 0;
     width: 100%;
+}
+
+.period-dropdown {
+    --width: 160px;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --offset-y: 8px;
+}
+
+.chevron-open {
+    transform: rotate(180deg);
 }
 </style>

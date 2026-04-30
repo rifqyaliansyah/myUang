@@ -34,17 +34,21 @@ export const useTransactionStore = defineStore('transaction', () => {
     const hasMore = ref(true)
     const currentOffset = ref(0)
     const currentWalletId = ref<string | undefined>(undefined)
+    const currentPeriodParams = ref<Record<string, any>>({})
 
     async function fetchTransactions(params?: {
         walletId?: string
         month?: number
         year?: number
         type?: 'income' | 'expense' | 'goal_topup'
+        startDate?: string
+        endDate?: string
     }) {
         loading.value = true
         hasMore.value = true
         currentOffset.value = 0
         currentWalletId.value = params?.walletId
+        currentPeriodParams.value = params ?? {}
 
         try {
             const res = await transactionService.getTransactions({
@@ -67,7 +71,7 @@ export const useTransactionStore = defineStore('transaction', () => {
 
         try {
             const res = await transactionService.getTransactions({
-                walletId: currentWalletId.value,
+                ...currentPeriodParams.value,
                 limit: LIMIT,
                 offset: nextOffset,
             })

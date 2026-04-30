@@ -7,11 +7,24 @@
                 <!-- Summary Header -->
                 <div class="summary-header">
                     <span class="summary-title">Summary</span>
-                    <div class="summary-period">
-                        <span>This month</span>
-                        <ion-icon :icon="chevronDownOutline" class="period-chevron" />
+                    <div class="summary-period" id="expense-period-trigger">
+                        <span>{{ selectedLabel }}</span>
+                        <ion-icon :icon="chevronDownOutline" class="period-chevron"
+                            :class="{ 'chevron-open': isPeriodOpen }" />
                     </div>
                 </div>
+
+                <ion-popover trigger="expense-period-trigger" trigger-action="click" :dismiss-on-select="true"
+                    :show-backdrop="false" side="bottom" alignment="end" class="period-dropdown" :style="popoverStyle"
+                    @willPresent="isPeriodOpen = true" @willDismiss="isPeriodOpen = false">
+                    <ion-content class="popover-scroll">
+                        <div v-for="opt in PERIOD_OPTIONS" :key="opt.key" class="dropdown-item"
+                            :class="{ 'dropdown-item--active': selectedPeriod === opt.key }"
+                            @click="selectPeriod(opt.key)">
+                            <span class="dropdown-name">{{ opt.label }}</span>
+                        </div>
+                    </ion-content>
+                </ion-popover>
 
                 <!-- Expense List -->
                 <div v-if="loading" class="loading-wrapper">
@@ -45,7 +58,10 @@
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/vue'
+import {
+    IonPage, IonContent, IonIcon, IonCard, IonCardContent, IonSpinner,
+    IonInfiniteScroll, IonInfiniteScrollContent, IonPopover
+} from '@ionic/vue'
 import { useWalletStore } from '@/stores/wallet'
 import { ref, computed, onMounted } from 'vue'
 import AppHeader from '../components/AppHeader.vue'
@@ -53,10 +69,13 @@ import { chevronDownOutline } from 'ionicons/icons'
 import { useRouter } from 'vue-router'
 import transactionService from '@/services/transaction.service'
 import type { Transaction } from '@/stores/transaction'
+import { usePeriodFilter, type PeriodKey } from '@/composables/usePeriodFilter'
 
 const router = useRouter()
 const walletStore = useWalletStore()
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
+
+const { selectedPeriod, selectedLabel, isDropdownOpen: isPeriodOpen, periodParams, PERIOD_OPTIONS } = usePeriodFilter()
 
 const localTransactions = ref<Transaction[]>([])
 const loading = ref(false)
@@ -77,12 +96,12 @@ async function loadInitial() {
     try {
         const res = await transactionService.getTransactions({
             walletId: activeWallet.value.id,
+            ...periodParams.value,
+            type: 'expense,goal_topup',
             limit: LIMIT,
             offset: 0,
         })
-        localTransactions.value = res.data.data.filter(
-            (t: Transaction) => t.type === 'expense' || t.type === 'goal_topup'
-        )
+        localTransactions.value = res.data.data
         if (res.data.data.length < LIMIT) hasMore.value = false
     } finally {
         loading.value = false
@@ -94,18 +113,22 @@ async function loadMore(ev: any) {
     try {
         const res = await transactionService.getTransactions({
             walletId: activeWallet.value?.id,
+            ...periodParams.value,
+            type: 'expense,goal_topup',
             limit: LIMIT,
             offset: nextOffset,
         })
-        const filtered = res.data.data.filter(
-            (t: Transaction) => t.type === 'expense' || t.type === 'goal_topup'
-        )
-        localTransactions.value = [...localTransactions.value, ...filtered]
+        localTransactions.value = [...localTransactions.value, ...res.data.data]
         currentOffset = nextOffset
         if (res.data.data.length < LIMIT) hasMore.value = false
     } finally {
         ev.target.complete()
     }
+}
+
+async function selectPeriod(key: PeriodKey) {
+    selectedPeriod.value = key
+    await loadInitial()
 }
 
 const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
@@ -119,6 +142,14 @@ const txLabel = (tx: any) => {
     if (tx.type === 'goal_topup') return `Goals: ${tx.goal_name ?? 'Goal'}`
     return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : 'Expense'
 }
+
+const popoverStyle = computed(() => {
+    const screenWidth = window.innerWidth
+    const appWidth = 480
+    if (screenWidth <= 768) return ''
+    const offset = -((screenWidth - appWidth) / 2) + 16
+    return `--offset-x: ${offset}px;`
+})
 </script>
 
 <style scoped>
@@ -241,5 +272,30 @@ const txLabel = (tx: any) => {
     padding: 48px 0;
     color: var(--color-black-60);
     font-size: 16px;
+}
+
+.period-dropdown {
+    --width: 160px;
+    --border-radius: 12px;
+    --box-shadow: 0 8px 24px rgba(0, 0, 0, 0.15);
+    --offset-y: 8px;
+}
+
+.dropdown-item {
+    display: flex;
+    align-items: center;
+    padding: 12px 16px;
+    cursor: pointer;
+    font-size: 15px;
+    color: var(--color-black-100);
+}
+
+.dropdown-item--active .dropdown-name {
+    color: #3077E3;
+    font-weight: 700;
+}
+
+.chevron-open {
+    transform: rotate(180deg);
 }
 </style>

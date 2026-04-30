@@ -16,7 +16,9 @@ const transactionService = {
         goalId?: string
         month?: number
         year?: number
-        type?: 'income' | 'expense' | 'goal_topup'
+        type?: 'income' | 'expense' | 'goal_topup' | string
+        startDate?: string
+        endDate?: string
         limit?: number
         offset?: number
     }) => api.get('/transactions', { params }),
