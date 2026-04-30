@@ -26,6 +26,7 @@ import ChangeLanguagePage from '../views/profile/ChangeLanguagePage.vue'
 import TransactionDetailPage from '../views/TransactionDetailPage.vue'
 import AboutUsPage from '../views/profile/AboutUsPage.vue'
 import HelpCenterPage from '../views/profile/HelpCenterPage.vue'
+import NotFoundPage from '../views/components/NotFoundPage.vue'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
 const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin']
@@ -184,6 +185,11 @@ const routes: Array<RouteRecordRaw> = [
     path: '/help-center',
     name: 'Help Center',
     component: HelpCenterPage
+  },
+  {
+    path: '/:pathMatch(.*)*',
+    name: 'Not Found',
+    component: NotFoundPage
   }
 ]
 
