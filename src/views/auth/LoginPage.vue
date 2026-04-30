@@ -96,6 +96,20 @@ async function showToast(message: string, color = 'danger') {
     await toast.present()
 }
 
+function extractErrorMessage(err: any): string {
+    const data = err.response?.data
+    if (!data) return 'Login failed'
+
+    // Kalau ada errors array (validation), ambil msg pertama
+    if (data.errors?.length > 0) {
+        return data.errors[0].msg === 'Invalid value' && data.errors[0].path === 'email'
+            ? 'Invalid email format'
+            : data.errors[0].msg
+    }
+
+    return data.message || 'Login failed'
+}
+
 onMounted(() => {
     // // @ts-ignore
     // google.accounts.id.initialize({
@@ -179,7 +193,7 @@ const handleLogin = async () => {
 
         router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
     } catch (err: any) {
-        showToast(err.response?.data?.message || 'Login failed')
+        showToast(extractErrorMessage(err))
     } finally {
         await loading.dismiss()
     }

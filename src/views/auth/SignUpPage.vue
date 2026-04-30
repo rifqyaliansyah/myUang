@@ -101,8 +101,21 @@ const showRepeatPassword = ref(false)
 const passwordMatch = computed(() => password.value === repeatPassword.value)
 
 async function showToast(message: string, color = 'danger') {
-  const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
-  await toast.present()
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
+function extractErrorMessage(err: any): string {
+    const data = err.response?.data
+    if (!data) return 'Registration failed'
+
+    if (data.errors?.length > 0) {
+        return data.errors[0].msg === 'Invalid value' && data.errors[0].path === 'email'
+            ? 'Invalid email format'
+            : data.errors[0].msg
+    }
+
+    return data.message || 'Registration failed'
 }
 
 const handleRegister = async () => {
@@ -125,7 +138,7 @@ const handleRegister = async () => {
 
     router.replace('/setup-pin')
   } catch (err: any) {
-    showToast(err.response?.data?.message || 'Registration failed')
+      showToast(extractErrorMessage(err))
   } finally {
     await loading.dismiss()
   }
