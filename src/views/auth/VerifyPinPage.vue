@@ -38,19 +38,23 @@
 
                 <!-- Logout link -->
                 <div class="logout-wrapper">
-                    <ion-button fill="clear" class="logout-btn" @click="handleLogout">
+                    <ion-button fill="clear" class="logout-btn" @click="showLogoutAlert = true">
                         Use another account
                     </ion-button>
                 </div>
             </div>
         </ion-content>
+
+        <ion-alert :is-open="showLogoutAlert" header="Switch Account?"
+            message="You will be logged out from your current account." :buttons="logoutButtons"
+            @didDismiss="showLogoutAlert = false" class="logout-alert" />
     </ion-page>
 </template>
 
 <script setup lang="ts">
-import { ref } from 'vue'
+import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonButton, IonAlert, toastController } from '@ionic/vue'
 import authService from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth'
 
@@ -60,6 +64,7 @@ const auth = useAuthStore()
 const currentPin = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
+const showLogoutAlert = ref(false)
 
 const keyboardRows = [
     ['1', '2', '3'],
@@ -108,10 +113,23 @@ async function handleKey(key: string) {
     }
 }
 
-async function handleLogout() {
-    await auth.logout()
-    router.replace('/login')
-}
+const logoutButtons = computed(() => [
+    {
+        text: 'Cancel',
+        role: 'cancel',
+        cssClass: 'alert-btn-no',
+        handler: () => { showLogoutAlert.value = false },
+    },
+    {
+        text: 'Switch',
+        cssClass: 'alert-btn-yes-danger',
+        handler: async () => {
+            showLogoutAlert.value = false
+            await auth.logout()
+            router.replace('/login')
+        },
+    },
+])
 </script>
 
 <style scoped>
@@ -259,5 +277,81 @@ async function handleLogout() {
 
 .key-delete svg path {
     fill: currentColor;
+}
+</style>
+
+<style>
+.logout-alert {
+    --backdrop-opacity: 0.4;
+    --border-radius: 8px;
+    --min-width: 280px;
+}
+
+.logout-alert .alert-wrapper {
+    border-radius: 8px;
+    height: 148px;
+    box-sizing: border-box;
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    padding: 0;
+}
+
+.logout-alert .alert-head {
+    padding: 16px 20px 2px;
+}
+
+.logout-alert .alert-title {
+    font-size: 16px;
+    font-weight: 700;
+    line-height: 24px;
+    color: var(--color-black-100);
+    letter-spacing: -0.02em;
+}
+
+.logout-alert .alert-message {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    color: var(--color-black-60);
+    padding: 2px 20px 0;
+    letter-spacing: -0.02em;
+}
+
+.logout-alert .alert-button-group {
+    display: flex;
+    flex-direction: row;
+    gap: 8px;
+    padding: 12px 16px 16px;
+}
+
+.logout-alert .alert-btn-no {
+    flex: 1;
+    height: 48px !important;
+    border: 1.5px solid #3077E3 !important;
+    border-radius: 8px !important;
+    color: #3077E3 !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    letter-spacing: -0.02em;
+    text-transform: none !important;
+    justify-content: center !important;
+}
+
+.logout-alert .alert-btn-yes-danger {
+    flex: 1;
+    height: 48px !important;
+    background: var(--color-red) !important;
+    border-radius: 8px !important;
+    color: var(--color-white) !important;
+    font-weight: 600 !important;
+    font-size: 16px !important;
+    letter-spacing: -0.02em;
+    text-transform: none !important;
+    justify-content: center !important;
+}
+
+.logout-alert .alert-button-inner {
+    justify-content: center !important;
 }
 </style>
