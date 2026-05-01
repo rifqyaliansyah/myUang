@@ -1,21 +1,27 @@
 import api from './api'
 
+const buildFormData = (data: {
+    name: string
+    target_amount: number
+    description?: string
+    image?: File | null
+}): FormData => {
+    const form = new FormData()
+    form.append('name', data.name)
+    form.append('target_amount', String(data.target_amount))
+    form.append('description', data.description || '')
+    if (data.image) form.append('image', data.image)
+    return form
+}
+
 const goalService = {
     getGoals: () => api.get('/goals'),
 
     createGoal: (data: { name: string; target_amount: number; description?: string; image?: File | null }) =>
-        api.post('/goals', {
-            name: data.name,
-            target_amount: data.target_amount,
-            description: data.description || '',
-        }),
+        api.post('/goals', buildFormData(data)),
 
     updateGoal: (id: string, data: { name: string; target_amount: number; description?: string; image?: File | null }) =>
-        api.put(`/goals/${id}`, {
-            name: data.name,
-            target_amount: data.target_amount,
-            description: data.description || '',
-        }),
+        api.put(`/goals/${id}`, buildFormData(data)),
 
     deleteGoal: (id: string) => api.delete(`/goals/${id}`),
 

@@ -7,6 +7,7 @@ export interface CreateTransactionPayload {
     amount: number
     note?: string
     date?: string
+    image?: File | null
 }
 
 const transactionService = {
@@ -30,8 +31,17 @@ const transactionService = {
         endDate?: string
     }) => api.get('/transactions/summary', { params: { walletId, ...params } }),
 
-    createTransaction: (data: CreateTransactionPayload) =>
-        api.post('/transactions', data),
+    createTransaction: (data: CreateTransactionPayload) => {
+        const form = new FormData()
+        form.append('wallet_id', data.wallet_id)
+        form.append('type', data.type)
+        form.append('amount', String(data.amount))
+        if (data.pocket_id) form.append('pocket_id', data.pocket_id)
+        if (data.note) form.append('note', data.note)
+        if (data.date) form.append('date', data.date)
+        if (data.image) form.append('image', data.image)
+        return api.post('/transactions', form)
+    },
 
     deleteTransaction: (id: string) =>
         api.delete(`/transactions/${id}`),

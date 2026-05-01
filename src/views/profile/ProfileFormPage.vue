@@ -11,8 +11,10 @@
                     <div class="avatar-section">
                         <div class="avatar-wrapper">
                             <img :src="previewAvatar" alt="avatar" class="avatar-img" />
-                            <div class="avatar-edit-btn" @click="triggerFilePicker">
-                                <img src="/assets/icon/pen-solid.svg" class="edit-icon" />
+                            <div class="avatar-edit-btn" :class="{ 'avatar-edit-btn--clear': avatarFile }"
+                                @click="avatarFile ? clearAvatar() : triggerFilePicker()">
+                                <ion-icon :icon="avatarFile ? closeOutline : '/assets/icon/pen-solid.svg'"
+                                    :class="avatarFile ? 'edit-icon--close' : 'edit-icon'" />
                             </div>
                             <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp"
                                 style="display:none" @change="handleFileChange" />
@@ -61,7 +63,8 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController, IonIcon } from '@ionic/vue'
+import { closeOutline, pencilOutline } from 'ionicons/icons'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { useAuthStore } from '@/stores/auth'
@@ -78,6 +81,7 @@ const quotes = ref('')
 const avatarUrl = ref(DEFAULT_AVATAR)
 const previewAvatar = ref(DEFAULT_AVATAR)
 const fileInputRef = ref<HTMLInputElement | null>(null)
+const avatarFile = ref<File | null>(null)
 const isSubmitting = ref(false)
 
 onMounted(() => {
@@ -100,6 +104,7 @@ const triggerFilePicker = () => {
 const handleFileChange = (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (file) {
+        avatarFile.value = file                 
         previewAvatar.value = URL.createObjectURL(file)
     }
 }
@@ -111,6 +116,7 @@ const handleSave = async () => {
         const res = await profileService.updateProfile({
             name: name.value,
             quotes: quotes.value,
+            avatar: avatarFile.value,
         })
         auth.setUser(res.data.data)
         showToast('Profile updated', 'success')
@@ -120,6 +126,12 @@ const handleSave = async () => {
     } finally {
         isSubmitting.value = false
     }
+}
+
+const clearAvatar = () => {
+    avatarFile.value = null
+    previewAvatar.value = auth.user?.avatar_url || DEFAULT_AVATAR
+    if (fileInputRef.value) fileInputRef.value.value = ''
 }
 </script>
 
@@ -190,6 +202,12 @@ const handleSave = async () => {
 .edit-icon {
     width: 12px;
     height: 12px;
+}
+
+.edit-icon--close {
+    width: 18px;
+    height: 18px;
+    color: white;
 }
 
 /* Form Group */
@@ -277,5 +295,9 @@ const handleSave = async () => {
 
 .save-btn:not([disabled]) {
     --background: #3077E3;
+}
+
+.avatar-edit-btn--clear {
+    background-color: #f45454;
 }
 </style>

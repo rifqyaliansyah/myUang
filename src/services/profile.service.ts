@@ -1,16 +1,19 @@
 import api from './api'
 
-export interface UpdateProfilePayload {
-    name: string
-    quotes?: string
-}
-
 const profileService = {
-    getProfile: () =>
-        api.get('/profile'),
+    getProfile: () => api.get('/profile'),
 
-    updateProfile: (data: UpdateProfilePayload) =>
-        api.put('/profile', data),
+    updateProfile: (data: {
+        name: string
+        quotes?: string
+        avatar?: File | null  
+    }) => {
+        const form = new FormData()
+        form.append('name', data.name)
+        if (data.quotes !== undefined) form.append('quotes', data.quotes)
+        if (data.avatar) form.append('avatar', data.avatar)  
+        return api.put('/profile', form)
+    },
 }
 
 export default profileService

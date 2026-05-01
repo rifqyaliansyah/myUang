@@ -71,10 +71,16 @@
 
                 <!-- Attachment -->
                 <div class="form-group">
-                    <div class="attachment-wrapper" @click="addAttachment">
-                        <ion-icon :icon="documentOutline" class="attachment-icon" />
-                        <span class="attachment-label">Add Attachment</span>
+                    <div class="attachment-wrapper" @click="triggerFilePicker">
+                        <ion-icon :icon="imageFile ? closeOutline : documentOutline" class="attachment-icon"
+                            :class="{ 'attachment-icon--filled': imageFile }"
+                            @click.stop="imageFile ? clearFile() : undefined" />
+                        <span class="attachment-label" :class="{ 'attachment-label--filled': imageFile }">
+                            {{ imageFile ? imageFile.name : 'Add Attachment' }}
+                        </span>
                     </div>
+                    <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
+                        @change="handleFileChange" />
                 </div>
 
                 <!-- Save Button -->
@@ -96,7 +102,7 @@ import { ref, computed, onMounted } from 'vue'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
-import { chevronDownOutline, documentOutline } from 'ionicons/icons'
+import { chevronDownOutline, documentOutline, closeOutline } from 'ionicons/icons'
 import { useWalletStore } from '@/stores/wallet'
 import { usePocketStore } from '@/stores/pocket'
 import { useTransactionStore } from '@/stores/transaction'
@@ -113,6 +119,8 @@ const amount = ref('')
 const displayAmount = ref('')
 const pocket = ref('')
 const description = ref('')
+const imageFile = ref<File | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 const isSubmitting = ref(false)
 
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
@@ -121,6 +129,20 @@ const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
     amount.value = raw
     displayAmount.value = raw ? Number(raw).toLocaleString('id-ID') : ''
+}
+
+const triggerFilePicker = () => {
+    if (!imageFile.value) fileInputRef.value?.click()
+}
+
+const handleFileChange = (e: Event) => {
+    const file = (e.target as HTMLInputElement).files?.[0]
+    if (file) imageFile.value = file
+}
+
+const clearFile = () => {
+    imageFile.value = null
+    if (fileInputRef.value) fileInputRef.value.value = ''
 }
 
 onMounted(async () => {
@@ -143,10 +165,6 @@ async function showToast(message: string, color = 'danger') {
     await toast.present()
 }
 
-const addAttachment = () => {
-    console.log('Add attachment')
-}
-
 const handleSave = async () => {
     if (!activeWallet.value) return showToast('No active wallet')
     if (!name.value || !date.value || !amount.value) return
@@ -160,6 +178,7 @@ const handleSave = async () => {
             amount: Number(amount.value),
             note: name.value,
             date: date.value,
+            image: imageFile.value,
         })
         await walletStore.fetchWallets()
         await pocketStore.fetchPockets()
@@ -193,7 +212,6 @@ const handleSave = async () => {
     gap: 16px;
 }
 
-/* Form Group */
 .form-group {
     display: flex;
     flex-direction: column;
@@ -208,7 +226,6 @@ const handleSave = async () => {
     color: var(--color-black-100);
 }
 
-/* Input */
 .input-wrapper {
     display: flex;
     align-items: center;
@@ -232,7 +249,6 @@ const handleSave = async () => {
     flex: 1;
 }
 
-/* Radio */
 .radio-wrapper {
     display: flex;
     align-items: center;
@@ -281,7 +297,6 @@ const handleSave = async () => {
     background-color: #3077E3;
 }
 
-/* Amount */
 .amount-wrapper {
     padding: 0;
     overflow: hidden;
@@ -309,7 +324,6 @@ const handleSave = async () => {
     --padding-bottom: 12px;
 }
 
-/* Select */
 .select-wrapper {
     position: relative;
     padding-right: 36px;
@@ -336,7 +350,6 @@ const handleSave = async () => {
     pointer-events: none;
 }
 
-/* Textarea */
 .textarea-wrapper {
     padding: 12px;
     align-items: flex-start;
@@ -360,7 +373,6 @@ const handleSave = async () => {
     color: var(--color-black-60);
 }
 
-/* Attachment */
 .attachment-wrapper {
     background: var(--color-bg-4);
     display: flex;
@@ -384,6 +396,23 @@ const handleSave = async () => {
     font-size: 16px;
     font-weight: 400;
     color: var(--color-black-60);
+}
+
+.attachment-icon--filled {
+    color: var(--color-black-100);
+}
+
+.attachment-label--filled {
+    color: var(--color-black-100);
+    font-weight: 400;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    max-width: 200px;
+}
+
+.footer {
+    padding-bottom: 8px;
 }
 
 .save-btn {

@@ -10,6 +10,11 @@
                 </div>
 
                 <template v-else-if="tx">
+                    <!-- Cover Image -->
+                    <div class="tx-cover" v-if="tx.image_url">
+                        <img :src="tx.image_url" :alt="tx.note" class="cover-img" />
+                    </div>
+
                     <div class="tx-detail-card">
                         <div class="tx-detail-type" :class="tx.type">{{ typeLabel }}</div>
                         <div class="tx-detail-amount" :class="tx.type === 'income' ? 'income' : 'expense'">
@@ -50,7 +55,7 @@
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
 import { IonPage, IonContent, IonSpinner } from '@ionic/vue'
-import { useRoute, useRouter } from 'vue-router'
+import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { useTransactionStore } from '@/stores/transaction'
 import type { Transaction } from '@/stores/transaction'
@@ -80,9 +85,7 @@ onMounted(async () => {
             ...transactionStore.goalActivities,
         ]
         const found = all.find(t => t.id === txId)
-        if (found) {
-            tx.value = found
-        }
+        if (found) tx.value = found
     } finally {
         loading.value = false
     }
@@ -111,6 +114,21 @@ const formatDateTime = (dateStr: string, createdAt: string) => {
     flex-direction: column;
     padding: 16px;
     gap: 16px;
+}
+
+/* Cover Image — sama persis kayak GoalsDetailPage */
+.tx-cover {
+    width: 100%;
+    border-radius: 12px;
+    overflow: hidden;
+    aspect-ratio: 16 / 9;
+}
+
+.cover-img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+    display: block;
 }
 
 .tx-detail-card {

@@ -15,6 +15,7 @@ export interface Transaction {
     note: string
     date: string
     created_at: string
+    image_url: string | null
 }
 
 export interface Summary {
