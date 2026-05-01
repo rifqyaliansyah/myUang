@@ -111,8 +111,13 @@ export const useTransactionStore = defineStore('transaction', () => {
         pocketActivities.value = res.data.data
     }
 
-    async function fetchSummary(walletId: string, month: number, year: number) {
-        const res = await transactionService.getSummary(walletId, month, year)
+    async function fetchSummary(walletId: string, params: {
+        month?: number
+        year?: number
+        startDate?: string
+        endDate?: string
+    } = {}) {
+        const res = await transactionService.getSummary(walletId, params)
         summary.value = res.data.data
     }
 

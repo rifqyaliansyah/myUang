@@ -40,18 +40,22 @@ const routes: Array<RouteRecordRaw> = [
     children: [
       {
         path: '',
+        meta: { title: 'Home' },
         component: () => import('../views/HomePage.vue')
       },
       {
         path: 'budgeting',
+        meta: { title: 'Budgeting' },
         component: () => import('../views/BudgetingPage.vue')
       },
       {
         path: 'goals',
+        meta: { title: 'Goals' },
         component: () => import('../views/GoalsPage.vue')
       },
       {
         path: 'profile',
+        meta: { title: 'Profile' },
         component: () => import('../views/ProfilePage.vue')
       },
     ]
@@ -59,136 +63,163 @@ const routes: Array<RouteRecordRaw> = [
   {
     path: '/login',
     name: 'Login',
+    meta: { title: 'Login' },
     component: LoginPage
   },
   {
     path: '/signup',
     name: 'Sign Up',
+    meta: { title: 'Sign Up' },
     component: SignUpPage
   },
   {
     path: '/forgot-password',
     name: 'Forgot Password',
+    meta: { title: 'Forgot Password' },
     component: ForgotPasswordPage
   },
   {
     path: '/sent-mail',
     name: 'Sent Mail',
+    meta: { title: 'Check Your Email' },
     component: SentMailPage
   },
   {
     path: '/setup-pin',
     name: 'Setup PIN',
+    meta: { title: 'Setup PIN' },
     component: SetupPinPage
   },
   {
     path: '/verify-pin',
     name: 'Verify PIN',
+    meta: { title: 'Verify PIN' },
     component: VerifyPinPage
   },
   {
     path: '/welcome',
     name: 'Welcome',
+    meta: { title: 'Welcome' },
     component: WelcomePage
   },
   {
     path: '/notification',
     name: 'Notification',
+    meta: { title: 'Notifications' },
     component: NotificationPage
   },
   {
     path: '/notification/:id',
     name: 'Notification Detail',
+    meta: { title: 'Notification' },
     component: NotificationDetailPage
   },
   {
     path: '/expense-summary',
     name: 'Expense Summary',
+    meta: { title: 'Expense Summary' },
     component: ExpenseSummaryPage
   },
   {
     path: '/income-summary',
     name: 'Income Summary',
+    meta: { title: 'Income Summary' },
     component: IncomeSummaryPage
   },
   {
     path: '/add-money-record',
     name: 'Add Money Record',
+    meta: { title: 'Add Record' },
     component: AddMoneyRecordPage
   },
   {
     path: '/wallet',
     name: 'Wallet',
+    meta: { title: 'Wallets' },
     component: WalletPage
   },
   {
     path: '/add-wallet',
     name: 'Add Wallet',
+    meta: { title: 'Add Wallet' },
     component: WalletFormPage
   },
   {
     path: '/edit-wallet/:id',
     name: 'Edit Wallet',
+    meta: { title: 'Edit Wallet' },
     component: WalletFormPage
   },
   {
     path: '/add-pocket',
     name: 'Add Pocket',
+    meta: { title: 'Add Pocket' },
     component: PocketFormPage
   },
   {
     path: '/edit-pocket/:id',
     name: 'Edit Pocket',
+    meta: { title: 'Edit Pocket' },
     component: PocketFormPage
   },
   {
     path: '/detail-pocket/:id',
     name: 'Detail Pocket',
+    meta: { title: 'Pocket Detail' },
     component: PocketDetailPage
   },
   {
     path: '/add-goals',
     name: 'Add Goals',
+    meta: { title: 'Add Goal' },
     component: GoalsFormPage
   },
   {
     path: '/edit-goals/:id',
     name: 'Edit Goals',
+    meta: { title: 'Edit Goal' },
     component: GoalsFormPage
   },
   {
     path: '/detail-goals/:id',
     name: 'Detail Goals',
+    meta: { title: 'Goal Detail' },
     component: GoalsDetailPage
   },
   {
     path: '/edit-profile',
     name: 'Edit Profile',
+    meta: { title: 'Edit Profile' },
     component: ProfileFormPage
   },
   {
     path: '/language',
     name: 'Language',
+    meta: { title: 'Language' },
     component: ChangeLanguagePage
   },
   {
     path: '/detail-transaction/:id',
     name: 'Transaction Detail',
+    meta: { title: 'Transaction Detail' },
     component: TransactionDetailPage
   },
   {
     path: '/about-us',
     name: 'About Us',
+    meta: { title: 'About Us' },
     component: AboutUsPage
   },
   {
     path: '/help-center',
     name: 'Help Center',
+    meta: { title: 'Help Center' },
     component: HelpCenterPage
   },
   {
     path: '/:pathMatch(.*)*',
     name: 'Not Found',
+    meta: { title: 'Page Not Found' },
     component: NotFoundPage
   }
 ]
@@ -200,6 +231,9 @@ const router = createRouter({
 
 router.beforeEach(async (to, _from, next) => {
   const auth = useAuthStore()
+
+  const pageTitle = to.meta?.title as string | undefined
+  document.title = pageTitle ? `MyUang - ${pageTitle}` : 'MyUang'
 
   if (!auth.sessionChecked) {
     await auth.initializeAuth()

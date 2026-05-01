@@ -198,21 +198,20 @@ const goalStore = useGoalStore()
 const notifStore = useNotificationStore()
 const isDropdownOpen = ref(false)
 
-const now = new Date()
-const currentMonth = now.getMonth() + 1
-const currentYear = now.getFullYear()
+// const now = new Date()
+// const currentMonth = now.getMonth() + 1
+// const currentYear = now.getFullYear()
 
-const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
+const DEFAULT_AVATAR = '/assets/image/default.jpg'
 const avatarUrl = computed(() => auth.user?.avatar_url || DEFAULT_AVATAR)
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
 
 const loadTransactionData = async (walletId: string) => {
     await Promise.all([
         transactionStore.fetchTransactions({ walletId, ...periodParams.value }),
-        transactionStore.fetchSummary(walletId, currentMonth, currentYear),
+        transactionStore.fetchSummary(walletId, periodParams.value),
     ])
 }
-
 const selectPeriod = async (key: PeriodKey) => {
     selectedPeriod.value = key
     if (activeWallet.value) {

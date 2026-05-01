@@ -23,8 +23,12 @@ const transactionService = {
         offset?: number
     }) => api.get('/transactions', { params }),
 
-    getSummary: (walletId: string, month: number, year: number) =>
-        api.get('/transactions/summary', { params: { walletId, month, year } }),
+    getSummary: (walletId: string, params: {
+        month?: number
+        year?: number
+        startDate?: string
+        endDate?: string
+    }) => api.get('/transactions/summary', { params: { walletId, ...params } }),
 
     createTransaction: (data: CreateTransactionPayload) =>
         api.post('/transactions', data),

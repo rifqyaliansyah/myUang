@@ -67,7 +67,7 @@ import AppHeader from '../components/AppHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import profileService from '@/services/profile.service'
 
-const DEFAULT_AVATAR = 'https://i.pinimg.com/236x/13/74/20/137420f5b9c39bc911e472f5d20f053e.jpg'
+const DEFAULT_AVATAR = '/assets/image/default.jpg'
 
 const router = useRouter()
 const auth = useAuthStore()

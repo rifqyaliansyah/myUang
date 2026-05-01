@@ -60,7 +60,7 @@
                 <div class="divider" />
 
                 <div class="about-card">
-                    <div class="about-version">v1.6.13</div>
+                    <div class="about-version">v1.7.15</div>
                     <div class="about-footer">© {{ currentYear }} MyUang. All rights reserved.</div>
                 </div>
 
