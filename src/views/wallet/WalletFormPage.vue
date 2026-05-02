@@ -18,7 +18,7 @@
 
                     <!-- Amount -->
                     <div class="form-group">
-                        <ion-label>Amount</ion-label>
+                        <ion-label>Amount (Optional)</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="currency-label">IDR</span>
                             <ion-input v-model="displayAmount" type="text" inputmode="numeric" placeholder="0"
@@ -29,7 +29,7 @@
 
                 <!-- Button -->
                 <div class="footer">
-                    <ion-button expand="block" class="save-btn" :disabled="!walletName || !amount || loading"
+                    <ion-button expand="block" class="save-btn" :disabled="!walletName || loading"
                         @click="handleSubmit">
                         <ion-spinner v-if="loading" name="crescent" />
                         <span v-else>{{ isEdit ? 'Edit Wallet' : 'Add Wallet' }}</span>
@@ -91,7 +91,7 @@ const handleAmountInput = (e: any) => {
 const handleSubmit = async () => {
     loading.value = true
     try {
-        const payload = { name: walletName.value, balance: Number(amount.value) }
+        const payload = { name: walletName.value, balance: amount.value ? Number(amount.value) : 0 }
 
         if (isEdit.value) {
             await walletStore.updateWallet(route.params.id as string, payload)
