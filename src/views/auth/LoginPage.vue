@@ -100,7 +100,6 @@ function extractErrorMessage(err: any): string {
     const data = err.response?.data
     if (!data) return 'Login failed'
 
-    // Kalau ada errors array (validation), ambil msg pertama
     if (data.errors?.length > 0) {
         return data.errors[0].msg === 'Invalid value' && data.errors[0].path === 'email'
             ? 'Invalid email format'
@@ -110,38 +109,16 @@ function extractErrorMessage(err: any): string {
     return data.message || 'Login failed'
 }
 
-onMounted(() => {
-    // // @ts-ignore
-    // google.accounts.id.initialize({
-    //     client_id: import.meta.env.VITE_GOOGLE_CLIENT_ID,
-    //     use_fedcm_for_prompt: false,
-    //     callback: async (response: { credential: string }) => {
-    //         const loading = await loadingController.create({ message: 'Signing in...' })
-    //         await loading.present()
-
-    //         try {
-    //             const res = await authService.googleAuth(response.credential)
-    //             const { user, tempToken, isPinSet } = res.data.data
-
-    //             auth.setUser(user)
-    //             auth.setTempToken(tempToken)
-    //             auth.setIsPinSet(isPinSet)
-
-    //             router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
-    //         } catch (err: any) {
-    //             showToast(err.response?.data?.message || 'Google sign in failed')
-    //         } finally {
-    //             await loading.dismiss()
-    //         }
-    //     },
-    // })
-
-    // // @ts-ignore
-    // google.accounts.id.renderButton(googleBtnRef.value, {
-    //     theme: 'outline',
-    //     size: 'large',
-    // })
-})
+/**
+ * Determine redirect after Google auth based on hasPassword and isPinSet.
+ * - No password yet  → /set-password (set password first, then setup-pin)
+ * - Has password, no PIN → /setup-pin
+ * - Has password, has PIN → /verify-pin
+ */
+function resolveGoogleRedirect(hasPassword: boolean, isPinSet: boolean): string {
+    if (!hasPassword) return '/set-password'
+    return isPinSet ? '/verify-pin' : '/setup-pin'
+}
 
 const loginWithGoogle = () => {
     // @ts-ignore
@@ -154,13 +131,13 @@ const loginWithGoogle = () => {
 
             try {
                 const res = await authService.googleAuth(response.credential)
-                const { user, tempToken, isPinSet } = res.data.data
+                const { user, tempToken, isPinSet, hasPassword } = res.data.data
 
                 auth.setUser(user)
                 auth.setTempToken(tempToken)
                 auth.setIsPinSet(isPinSet)
 
-                router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
+                router.replace(resolveGoogleRedirect(hasPassword, isPinSet))
             } catch (err: any) {
                 showToast(err.response?.data?.message || 'Google sign in failed')
             } finally {

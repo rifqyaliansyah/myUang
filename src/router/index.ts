@@ -10,6 +10,7 @@ import SentMailPage from '../views/auth/SentMailPage.vue'
 import SetupPinPage from '../views/auth/SetupPinPage.vue'
 import VerifyPinPage from '../views/auth/VerifyPinPage.vue'
 import WelcomePage from '../views/auth/WelcomePage.vue'
+import SetPasswordPage from '../views/auth/SetPasswordPage.vue'
 import NotificationPage from '../views/NotificationPage.vue'
 import NotificationDetailPage from '../views/NotificationDetailPage.vue'
 import ExpenseSummaryPage from '../views/summary/ExpenseSummaryPage.vue'
@@ -29,7 +30,7 @@ import HelpCenterPage from '../views/profile/HelpCenterPage.vue'
 import NotFoundPage from '../views/components/NotFoundPage.vue'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
-const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin']
+const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin', '/set-password']
 const PIN_SUCCESS_ROUTE = '/welcome'
 const AFTER_LOGIN_BLOCKED = [...PUBLIC_ROUTES, ...TEMP_TOKEN_ROUTES, PIN_SUCCESS_ROUTE]
 
@@ -101,6 +102,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Welcome',
     meta: { title: 'Welcome' },
     component: WelcomePage
+  },
+  {
+    path: '/set-password',
+    name: 'Set Password',
+    meta: { title: 'Set Password' },
+    component: SetPasswordPage
   },
   {
     path: '/notification',

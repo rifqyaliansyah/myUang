@@ -28,6 +28,11 @@ const authService = {
             headers: { Authorization: `Bearer ${tempToken}` }
         }),
 
+    setPassword: (password: string, tempToken: string) =>
+        api.post('/auth/set-password', { password }, {
+            headers: { Authorization: `Bearer ${tempToken}` }
+        }),
+
     googleAuth: (idToken: string) =>
         api.post('/auth/google', { idToken }),
 
@@ -38,7 +43,7 @@ const authService = {
         api.post('/auth/logout', { refreshToken }),
 
     resume: (refreshToken: string) =>
-    api.post('/auth/resume', { refreshToken }),
+        api.post('/auth/resume', { refreshToken }),
 }
 
 export default authService
