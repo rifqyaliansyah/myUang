@@ -37,6 +37,11 @@
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
+                    <div class="menu-item" @click="handleSecurity">
+                        <span class="menu-label">Security</span>
+                        <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
+                    </div>
+                    <div class="divider" />
                     <div class="menu-item" @click="handleHelpCenter">
                         <span class="menu-label">Help Center</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
@@ -115,6 +120,7 @@ const logoutButtons = computed(() => [
 const handleEditProfile = () => router.push('/edit-profile')
 const handleLanguage = () => router.push('/language')
 const handleAboutUs = () => router.push('/about-us')
+const handleSecurity = () => router.push('/security')
 const handleHelpCenter = () => router.push('/help-center')
 const handleLogOut = () => { showLogoutAlert.value = true }
 </script>

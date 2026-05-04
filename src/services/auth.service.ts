@@ -28,10 +28,21 @@ const authService = {
             headers: { Authorization: `Bearer ${tempToken}` }
         }),
 
+    verifyByPassword: (password: string, tempToken: string) =>
+        api.post('/auth/verify-by-password', { password }, {
+            headers: { Authorization: `Bearer ${tempToken}` }
+        }),
+
     setPassword: (password: string, tempToken: string) =>
         api.post('/auth/set-password', { password }, {
             headers: { Authorization: `Bearer ${tempToken}` }
         }),
+
+    changePassword: (oldPassword: string, newPassword: string) =>
+        api.post('/auth/change-password', { oldPassword, newPassword }),
+
+    changePin: (oldPin: string, newPin: string) =>
+        api.post('/auth/change-pin', { oldPin, newPin }),
 
     googleAuth: (idToken: string) =>
         api.post('/auth/google', { idToken }),

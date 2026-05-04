@@ -28,6 +28,9 @@ import TransactionDetailPage from '../views/TransactionDetailPage.vue'
 import AboutUsPage from '../views/profile/AboutUsPage.vue'
 import HelpCenterPage from '../views/profile/HelpCenterPage.vue'
 import NotFoundPage from '../views/components/NotFoundPage.vue'
+import SecurityPage from '../views/profile/SecurityPage.vue'
+import ChangePinPage from '../views/profile/ChangePinPage.vue'
+import ChangePasswordPage from '../views/profile/ChangePasswordPage.vue'
 
 const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
 const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin', '/set-password']
@@ -222,6 +225,24 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Help Center',
     meta: { title: 'Help Center' },
     component: HelpCenterPage
+  },
+  {
+    path: '/security',
+    name: 'Security',
+    meta: { title: 'Security' },
+    component: SecurityPage
+  },
+  {
+    path: '/change-pin',
+    name: 'Change PIN',
+    meta: { title: 'Change PIN' },
+    component: ChangePinPage
+  },
+  {
+    path: '/change-password',
+    name: 'Change Password',
+    meta: { title: 'Change Password' },
+    component: ChangePasswordPage
   },
   {
     path: '/:pathMatch(.*)*',

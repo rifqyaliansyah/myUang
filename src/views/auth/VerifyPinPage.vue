@@ -36,25 +36,71 @@
                     </div>
                 </div>
 
-                <!-- Logout link -->
-                <div class="logout-wrapper">
-                    <ion-button fill="clear" class="logout-btn" @click="showLogoutAlert = true">
+                <!-- Bottom actions -->
+                <div class="bottom-actions">
+                    <ion-button fill="clear" class="action-btn" @click="showLogoutAlert = true">
                         Use another account
+                    </ion-button>
+                    <ion-button fill="clear" class="action-btn action-btn-right" @click="showPasswordModal = true">
+                        Use password
                     </ion-button>
                 </div>
             </div>
         </ion-content>
 
+        <!-- Switch account alert -->
         <ion-alert :is-open="showLogoutAlert" header="Switch Account?"
             message="You will be logged out from your current account." :buttons="logoutButtons"
             @didDismiss="showLogoutAlert = false" class="logout-alert" />
+
+        <!-- Use password modal -->
+        <ion-modal :is-open="showPasswordModal" :initial-breakpoint="0.55" :breakpoints="[0, 0.55]" handle="false"
+            @didDismiss="onPasswordModalDismiss" class="password-modal">
+            <ion-content class="modal-content">
+                <div class="modal-wrapper">
+                    <div class="sheet-handle" />
+
+                    <div class="modal-title">Use Password</div>
+
+                    <div class="form-group">
+                        <ion-label>Password</ion-label>
+                        <div class="input-wrapper">
+                            <ion-input v-model="password" :type="showPassword ? 'text' : 'password'"
+                                placeholder="Password" class="custom-input-password">
+                                <ion-button fill="clear" slot="end" class="toggle-password"
+                                    @click="showPassword = !showPassword">
+                                    <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
+                                </ion-button>
+                            </ion-input>
+                        </div>
+                        <p v-if="passwordError" class="password-error">{{ passwordError }}</p>
+                    </div>
+
+                    <div class="forgot-wrapper">
+                        <ion-button fill="clear" class="forgot-btn" @click="goToForgotPassword">
+                            Forgot Password?
+                        </ion-button>
+                    </div>
+
+                    <ion-button expand="block" class="login-btn" :disabled="!password || isPasswordLoading"
+                        @click="handlePasswordLogin">
+                        <ion-spinner v-if="isPasswordLoading" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>Continue</span>
+                    </ion-button>
+                </div>
+            </ion-content>
+        </ion-modal>
     </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import { IonPage, IonContent, IonButton, IonAlert, toastController } from '@ionic/vue'
+import {
+    IonPage, IonContent, IonButton, IonAlert, IonModal,
+    IonLabel, IonInput, IonIcon, IonSpinner, toastController
+} from '@ionic/vue'
+import { eyeOutline, eyeOffOutline } from 'ionicons/icons'
 import authService from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth'
 
@@ -65,6 +111,13 @@ const currentPin = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 const showLogoutAlert = ref(false)
+
+// Password modal
+const showPasswordModal = ref(false)
+const password = ref('')
+const showPassword = ref(false)
+const passwordError = ref('')
+const isPasswordLoading = ref(false)
 
 const keyboardRows = [
     ['1', '2', '3'],
@@ -111,6 +164,38 @@ async function handleKey(key: string) {
             isLoading.value = false
         }
     }
+}
+
+const onPasswordModalDismiss = () => {
+    showPasswordModal.value = false
+    password.value = ''
+    showPassword.value = false
+    passwordError.value = ''
+}
+
+const handlePasswordLogin = async () => {
+    if (!password.value || isPasswordLoading.value) return
+    passwordError.value = ''
+    isPasswordLoading.value = true
+    try {
+        const res = await authService.verifyByPassword(password.value, auth.tempToken!)
+        const { accessToken, refreshToken } = res.data.data
+
+        auth.setTokens(accessToken, refreshToken)
+        auth.setPinVerified()
+
+        showPasswordModal.value = false
+        router.replace('/')
+    } catch (err: any) {
+        passwordError.value = err.response?.data?.message || 'Incorrect password'
+    } finally {
+        isPasswordLoading.value = false
+    }
+}
+
+const goToForgotPassword = () => {
+    showPasswordModal.value = false
+    router.push('/forgot-password')
 }
 
 const logoutButtons = computed(() => [
@@ -278,6 +363,142 @@ const logoutButtons = computed(() => [
 .key-delete svg path {
     fill: currentColor;
 }
+
+/* Bottom actions */
+.bottom-actions {
+    display: flex;
+    flex-direction: row;
+    justify-content: space-between;
+    align-items: center;
+    margin-top: 8px;
+}
+
+.action-btn {
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 14px;
+    font-weight: 500;
+    line-height: 20px;
+    letter-spacing: -0.01em;
+    color: var(--color-black-60);
+    margin: 0;
+    height: auto;
+}
+
+.action-btn-right {
+    color: #3077E3;
+    font-weight: 600;
+}
+
+/* Modal */
+.modal-content {
+    --background: var(--color-white);
+}
+
+.modal-wrapper {
+    padding: 12px 16px 24px;
+    display: flex;
+    flex-direction: column;
+    gap: 16px;
+}
+
+.sheet-handle {
+    width: 49px;
+    height: 5px;
+    background: var(--color-black-40);
+    border-radius: 5px;
+    margin: 8px auto 0;
+}
+
+.modal-title {
+    font-size: 18px;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    color: var(--color-black-100);
+}
+
+.form-group {
+    display: flex;
+    flex-direction: column;
+    gap: 8px;
+}
+
+.form-group ion-label {
+    font-size: 16px;
+    font-weight: 400;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+    color: var(--color-black-100);
+}
+
+.input-wrapper {
+    display: flex;
+    align-items: center;
+    background-color: var(--color-bg-4);
+    border-radius: 8px;
+    padding: 0 12px;
+}
+
+.custom-input-password {
+    --background: transparent;
+    --color: var(--color-black-100);
+    --placeholder-color: var(--color-black-60);
+    font-size: 16px;
+    font-weight: 300;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+    flex: 1;
+}
+
+.toggle-password {
+    --color: var(--color-black-100);
+    --padding-start: 8px;
+    --padding-end: 0;
+    margin: 0;
+    height: 32px;
+}
+
+.password-error {
+    font-size: 12px;
+    color: #E53935;
+    margin: 0;
+}
+
+.login-btn {
+    --background: var(--color-black-40);
+    --background-activated: var(--color-primary-1);
+    --border-radius: 8px;
+    --color: var(--color-white);
+    --box-shadow: none;
+    height: 40px;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+    margin: 0;
+}
+
+.login-btn:not([disabled]) {
+    --background: #3077E3;
+}
+
+.forgot-wrapper {
+    display: flex;
+    justify-content: flex-end;
+    margin-top: -8px;
+}
+
+.forgot-btn {
+    color: #3077E3;
+    --padding-start: 0;
+    --padding-end: 0;
+    font-size: 16px;
+    font-weight: 600;
+    line-height: 24px;
+    letter-spacing: -0.02em;
+    margin: 0;
+    height: auto;
+}
 </style>
 
 <style>
@@ -353,5 +574,12 @@ const logoutButtons = computed(() => [
 
 .logout-alert .alert-button-inner {
     justify-content: center !important;
+}
+
+.password-modal {
+    --width: 100% !important;
+    --max-width: 480px !important;
+    --height: 500px !important;
+    --border-radius: 24px 24px 0 0 !important;
 }
 </style>
