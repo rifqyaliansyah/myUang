@@ -7,22 +7,18 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Setup PIN</h1>
+                    <h1>{{ t('setupPin.title') }}</h1>
                     <p>{{ headerSubtitle }}</p>
                 </div>
 
-                <!-- PIN Dots -->
                 <div class="pin-dots">
                     <div v-for="i in 4" :key="i" class="pin-dot" :class="{ filled: currentPin.length >= i }"></div>
                 </div>
 
-                <!-- Error message -->
                 <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
 
-                <!-- Spacer -->
                 <div class="spacer"></div>
 
-                <!-- Numeric Keyboard -->
                 <div class="pin-keyboard">
                     <div class="keyboard-row" v-for="row in keyboardRows" :key="row.join('')">
                         <button v-for="key in row" :key="key" class="key-btn"
@@ -35,9 +31,7 @@
                                         fill="currentColor" />
                                 </svg>
                             </template>
-                            <template v-else-if="key !== ''">
-                                {{ key }}
-                            </template>
+                            <template v-else-if="key !== ''">{{ key }}</template>
                         </button>
                     </div>
                 </div>
@@ -49,12 +43,14 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, toastController } from '@ionic/vue'
 import authService from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 type Step = 'create' | 'confirm'
 
@@ -65,9 +61,7 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 
 const headerSubtitle = computed(() =>
-    step.value === 'create'
-        ? "Let's create a PIN for extra security"
-        : 'Alright, please re-enter your PIN'
+    step.value === 'create' ? t('setupPin.subtitleCreate') : t('setupPin.subtitleConfirm')
 )
 
 const keyboardRows = [
@@ -84,7 +78,6 @@ async function showToast(message: string, color = 'danger') {
 
 async function handleKey(key: string) {
     if (isLoading.value) return
-
     if (key === 'del') {
         if (currentPin.value.length > 0) {
             currentPin.value = currentPin.value.slice(0, -1)
@@ -92,9 +85,7 @@ async function handleKey(key: string) {
         }
         return
     }
-
     if (key === '' || currentPin.value.length >= 4) return
-
     errorMessage.value = ''
     currentPin.value += key
 
@@ -105,24 +96,20 @@ async function handleKey(key: string) {
             step.value = 'confirm'
             return
         }
-
         if (currentPin.value !== firstPin.value) {
-            errorMessage.value = 'PIN does not match. Please try again.'
+            errorMessage.value = t('setupPin.pinMismatch')
             currentPin.value = ''
             firstPin.value = ''
             step.value = 'create'
             return
         }
-
         isLoading.value = true
         try {
             const res = await authService.setupPin(currentPin.value, auth.tempToken!)
             const { accessToken, refreshToken } = res.data.data
-
             auth.setTokens(accessToken, refreshToken)
             auth.setIsPinSet(true)
             auth.setPinVerified()
-
             router.replace('/welcome')
         } catch (err: any) {
             showToast(err.response?.data?.message || 'Failed to setup PIN')

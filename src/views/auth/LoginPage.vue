@@ -7,26 +7,26 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Login</h1>
-                    <p>Please log in to enjoy all MyUang features</p>
+                    <h1>{{ t('login.title') }}</h1>
+                    <p>{{ t('login.subtitle') }}</p>
                 </div>
 
-                <!-- Form -->
                 <div class="login-form">
                     <!-- Email -->
                     <div class="form-group">
-                        <ion-label>Email</ion-label>
+                        <ion-label>{{ t('login.email') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input" />
+                            <ion-input v-model="email" type="email" :placeholder="t('login.email')"
+                                class="custom-input" />
                         </div>
                     </div>
 
                     <!-- Password -->
                     <div class="form-group">
-                        <ion-label>Password</ion-label>
+                        <ion-label>{{ t('login.password') }}</ion-label>
                         <div class="input-wrapper">
                             <ion-input v-model="password" :type="showPassword ? 'text' : 'password'"
-                                placeholder="Password" class="custom-input-password">
+                                :placeholder="t('login.password')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showPassword = !showPassword">
                                     <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
@@ -38,18 +38,15 @@
                     <!-- Forgot Password -->
                     <div class="forgot-wrapper">
                         <ion-button fill="clear" class="forgot-btn" @click="$router.push('/forgot-password')">
-                            Forgot Password?
+                            {{ t('login.forgot') }}
                         </ion-button>
                     </div>
 
-                    <p class="or-text">or Login with</p>
+                    <p class="or-text">{{ t('login.orWith') }}</p>
 
                     <!-- Google Login -->
                     <div class="social-wrapper">
-                        <!-- Hidden Google button, tetap ke-render di DOM -->
                         <div ref="googleBtnRef" class="google-btn-hidden"></div>
-
-                        <!-- Tampilan button tetap seperti semula -->
                         <ion-button fill="outline" class="google-btn" @click="loginWithGoogle">
                             <img src="/assets/icon/google.svg" alt="Google" class="google-icon" />
                         </ion-button>
@@ -59,14 +56,14 @@
                 <!-- Footer -->
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn" :disabled="!email || !password" @click="handleLogin">
-                        Login
+                        {{ t('login.btn') }}
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
 
                     <p class="signup-text">
-                        Don't have an account?
+                        {{ t('login.noAccount') }}
                         <ion-button fill="clear" class="signup-btn" router-link="/signup">
-                            Sign Up
+                            {{ t('login.signUp') }}
                         </ion-button>
                     </p>
                 </div>
@@ -78,6 +75,7 @@
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
 import authService from '@/services/auth.service'
@@ -85,6 +83,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const email = ref('')
 const password = ref('')
@@ -99,22 +98,14 @@ async function showToast(message: string, color = 'danger') {
 function extractErrorMessage(err: any): string {
     const data = err.response?.data
     if (!data) return 'Login failed'
-
     if (data.errors?.length > 0) {
         return data.errors[0].msg === 'Invalid value' && data.errors[0].path === 'email'
             ? 'Invalid email format'
             : data.errors[0].msg
     }
-
     return data.message || 'Login failed'
 }
 
-/**
- * Determine redirect after Google auth based on hasPassword and isPinSet.
- * - No password yet  → /set-password (set password first, then setup-pin)
- * - Has password, no PIN → /setup-pin
- * - Has password, has PIN → /verify-pin
- */
 function resolveGoogleRedirect(hasPassword: boolean, isPinSet: boolean): string {
     if (!hasPassword) return '/set-password'
     return isPinSet ? '/verify-pin' : '/setup-pin'
@@ -128,15 +119,12 @@ const loginWithGoogle = () => {
         callback: async (response: { credential: string }) => {
             const loading = await loadingController.create({ message: 'Signing in...' })
             await loading.present()
-
             try {
                 const res = await authService.googleAuth(response.credential)
                 const { user, tempToken, isPinSet, hasPassword } = res.data.data
-
                 auth.setUser(user)
                 auth.setTempToken(tempToken)
                 auth.setIsPinSet(isPinSet)
-
                 router.replace(resolveGoogleRedirect(hasPassword, isPinSet))
             } catch (err: any) {
                 showToast(err.response?.data?.message || 'Google sign in failed')
@@ -145,13 +133,8 @@ const loginWithGoogle = () => {
             }
         },
     })
-
     // @ts-ignore
-    google.accounts.id.renderButton(googleBtnRef.value, {
-        theme: 'outline',
-        size: 'large',
-    })
-
+    google.accounts.id.renderButton(googleBtnRef.value, { theme: 'outline', size: 'large' })
     const googleBtn = googleBtnRef.value?.querySelector('div[role=button]') as HTMLElement
     googleBtn?.click()
 }
@@ -159,15 +142,12 @@ const loginWithGoogle = () => {
 const handleLogin = async () => {
     const loading = await loadingController.create({ message: 'Logging in...' })
     await loading.present()
-
     try {
         const res = await authService.login({ email: email.value, password: password.value })
         const { user, tempToken, isPinSet } = res.data.data
-
         auth.setUser(user)
         auth.setTempToken(tempToken)
         auth.setIsPinSet(isPinSet)
-
         router.replace(isPinSet ? '/verify-pin' : '/setup-pin')
     } catch (err: any) {
         showToast(extractErrorMessage(err))

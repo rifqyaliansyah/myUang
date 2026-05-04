@@ -1,18 +1,12 @@
 <template>
     <ion-page>
         <AppHeader title="Wallet" :show-back="true" back-href="/" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <template v-if="walletStore.loading">
-                    <div class="loading-wrapper">
-                        <ion-spinner name="crescent" />
-                    </div>
+                    <div class="loading-wrapper"><ion-spinner name="crescent" /></div>
                 </template>
-
                 <template v-else>
-                    <!-- Wallet Card -->
                     <div class="wallet-card" :class="wallet.is_active ? 'wallet-card--active' : 'wallet-card--inactive'"
                         v-for="wallet in walletStore.wallets" :key="wallet.id">
                         <div class="wallet-card-header">
@@ -23,50 +17,46 @@
                         </div>
                         <div class="wallet-balance">IDR {{ formatAmount(wallet.balance) }}</div>
                         <div class="wallet-status" v-if="wallet.is_active">
-                            <span>This wallet is currently used</span>
+                            <span>{{ t('wallet.used') }}</span>
                             <img src="/assets/icon/circle-check.svg" class="status-icon" />
                         </div>
 
-                        <!-- Popover -->
                         <ion-popover :trigger="`wallet-menu-${wallet.id}`" side="bottom" alignment="end"
                             trigger-action="click" :dismiss-on-select="true" :show-backdrop="false"
                             :style="popoverStyle" class="wallet-popover">
                             <ion-content class="popover-content">
                                 <div class="menu-item" @click="handleEdit(wallet)">
-                                    <span>Edit</span>
+                                    <span>{{ t('wallet.edit') }}</span>
                                 </div>
                                 <template v-if="!wallet.is_active">
                                     <div class="menu-divider"></div>
                                     <div class="menu-item" @click="handleUseWallet(wallet)">
-                                        <span>Use this wallet</span>
+                                        <span>{{ t('wallet.useThis') }}</span>
                                     </div>
                                 </template>
                                 <div class="menu-divider"></div>
                                 <div class="menu-item menu-item--danger" @click="handleDelete(wallet)">
-                                    <span>Delete</span>
+                                    <span>{{ t('wallet.delete') }}</span>
                                 </div>
                             </ion-content>
                         </ion-popover>
                     </div>
 
-                    <!-- Add New Wallet -->
                     <div class="add-wallet-btn" @click="handleAddWallet">
-                        <span>Add New Wallet</span>
+                        <span>{{ t('wallet.addNew') }}</span>
                     </div>
                 </template>
-
             </div>
         </ion-content>
 
-        <!-- Delete Confirmation Modal -->
-        <ion-alert :is-open="showDeleteAlert" header="Are you sure to delete?"
-            message="Your wallet will be permanently deleted" :buttons="alertButtons"
-            @didDismiss="showDeleteAlert = false" class="delete-alert" />
+        <ion-alert :is-open="showDeleteAlert" :header="t('wallet.deleteHeader')" :message="t('wallet.deleteMessage')"
+            :buttons="alertButtons" @didDismiss="showDeleteAlert = false" class="delete-alert" />
     </ion-page>
 </template>
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonButton, IonIcon, IonPopover, IonAlert, IonSpinner, toastController } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
@@ -76,13 +66,12 @@ import type { Wallet } from '@/stores/wallet'
 
 const router = useRouter()
 const walletStore = useWalletStore()
+const { t } = useI18n()
 
 const showDeleteAlert = ref(false)
 const walletToDelete = ref<Wallet | null>(null)
 
-onMounted(async () => {
-    await walletStore.fetchWallets()
-})
+onMounted(async () => { await walletStore.fetchWallets() })
 
 async function showToast(message: string, color = 'danger') {
     const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
@@ -91,21 +80,18 @@ async function showToast(message: string, color = 'danger') {
 
 const alertButtons = computed(() => [
     {
-        text: 'No',
-        role: 'cancel',
-        cssClass: 'alert-btn-no',
+        text: 'No', role: 'cancel', cssClass: 'alert-btn-no',
         handler: () => { showDeleteAlert.value = false },
     },
     {
-        text: 'Yes',
-        cssClass: 'alert-btn-yes',
+        text: 'Yes', cssClass: 'alert-btn-yes',
         handler: async () => {
             if (walletToDelete.value) {
                 try {
                     await walletStore.deleteWallet(walletToDelete.value.id)
-                    showToast('Wallet deleted', 'success')
+                    showToast(t('wallet.toastDeleted'), 'success')
                 } catch {
-                    showToast('Failed to delete wallet')
+                    showToast(t('wallet.toastDeleteFailed'))
                 } finally {
                     walletToDelete.value = null
                     showDeleteAlert.value = false
@@ -124,31 +110,18 @@ const popoverStyle = computed(() => {
     return `--offset-x: ${offset}px;`
 })
 
-const formatAmount = (value: number) => {
-    return Number(value).toLocaleString('id-ID')
-}
-
-const handleEdit = (wallet: Wallet) => {
-    router.push(`/edit-wallet/${wallet.id}`)
-}
-
+const formatAmount = (value: number) => Number(value).toLocaleString('id-ID')
+const handleEdit = (wallet: Wallet) => router.push(`/edit-wallet/${wallet.id}`)
 const handleUseWallet = async (wallet: Wallet) => {
     try {
         await walletStore.setActiveWallet(wallet.id)
         await walletStore.fetchWallets()
     } catch {
-        showToast('Failed to update active wallet')
+        showToast(t('wallet.toastActiveFailed'))
     }
 }
-
-const handleDelete = (wallet: Wallet) => {
-    walletToDelete.value = wallet
-    showDeleteAlert.value = true
-}
-
-const handleAddWallet = () => {
-    router.push('/add-wallet')
-}
+const handleDelete = (wallet: Wallet) => { walletToDelete.value = wallet; showDeleteAlert.value = true }
+const handleAddWallet = () => router.push('/add-wallet')
 </script>
 
 <style scoped>

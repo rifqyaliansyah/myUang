@@ -13,7 +13,7 @@
                     <div class="profile-info">
                         <div class="profile-name">{{ userName }}</div>
                         <div class="profile-email">{{ userEmail }}</div>
-                        <div class="edit-profile" @click="handleEditProfile">Edit Profile</div>
+                        <div class="edit-profile" @click="handleEditProfile">{{ t('profile.editProfile') }}</div>
                     </div>
                 </div>
 
@@ -28,27 +28,27 @@
                 <!-- Menu List -->
                 <div class="menu-list">
                     <div class="menu-item" @click="handleLanguage">
-                        <span class="menu-label">Languange</span>
+                        <span class="menu-label">{{ t('profile.language') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
                     <div class="menu-item" @click="handleAboutUs">
-                        <span class="menu-label">About Us</span>
+                        <span class="menu-label">{{ t('profile.aboutUs') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
                     <div class="menu-item" @click="handleSecurity">
-                        <span class="menu-label">Security</span>
+                        <span class="menu-label">{{ t('profile.security') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
                     <div class="menu-item" @click="handleHelpCenter">
-                        <span class="menu-label">Help Center</span>
+                        <span class="menu-label">{{ t('profile.helpCenter') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
                     <div class="menu-item" @click="handleLogOut">
-                        <span class="menu-label">Log Out</span>
+                        <span class="menu-label">{{ t('profile.logOut') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
@@ -62,8 +62,8 @@
         </ion-content>
 
         <!-- Logout Confirmation Modal -->
-        <ion-alert :is-open="showLogoutAlert" header="Are you sure to Log Out?"
-            message="Your will log out from your account." :buttons="logoutButtons"
+        <ion-alert :is-open="showLogoutAlert" :header="t('profile.logOutHeader')" :message="t('profile.logOutMessage')"
+            :buttons="logoutButtons"
             @didDismiss="showLogoutAlert = false" class="logout-alert" />
     </ion-page>
 </template>
@@ -76,6 +76,9 @@ import { chevronForwardOutline } from 'ionicons/icons'
 import { useAuthStore } from '@/stores/auth'
 import AppHeader from './components/AppHeader.vue'
 import profileService from '@/services/profile.service'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const DEFAULT_AVATAR = '/assets/image/default.jpg'
 

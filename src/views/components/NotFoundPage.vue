@@ -3,10 +3,10 @@
         <ion-content class="page-content" :fullscreen="true">
             <div class="wrapper">
                 <div class="code">404</div>
-                <div class="title">Page Not Found</div>
-                <div class="subtitle">The page you're looking for doesn't exist or has been moved.</div>
+                <div class="title">{{ t('notFound.title') }}</div>
+                <div class="subtitle">{{ t('notFound.subtitle') }}</div>
                 <ion-button class="back-btn" @click="router.replace('/')">
-                    Back to Home
+                    {{ t('notFound.btn') }}
                 </ion-button>
             </div>
         </ion-content>
@@ -14,10 +14,12 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonButton } from '@ionic/vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const { t } = useI18n()
 </script>
 
 <style scoped>

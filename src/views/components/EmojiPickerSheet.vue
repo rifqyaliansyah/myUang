@@ -6,12 +6,12 @@
                 <!-- Handle -->
                 <div class="sheet-handle" />
 
-                <div class="sheet-title">Choose Emoji for Pocket</div>
+                <div class="sheet-title">{{ t('emojiPicker.title') }}</div>
 
                 <!-- Search -->
                 <div class="search-wrapper">
-                    <input v-model="search" type="text" placeholder="Search...." class="search-input" @touchstart.stop
-                        @mousedown.stop />
+                    <input v-model="search" type="text" :placeholder="t('emojiPicker.search')" class="search-input"
+                        @touchstart.stop @mousedown.stop />
                     <ion-icon :icon="searchOutline" class="search-icon" />
                 </div>
 
@@ -37,9 +37,11 @@ import { ref, computed, onMounted } from 'vue'
 import { IonModal, IonContent, IonIcon } from '@ionic/vue'
 import { searchOutline } from 'ionicons/icons'
 import { createGesture } from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
 
 defineProps<{ isOpen: boolean }>()
 const emit = defineEmits(['close', 'select'])
+const { t } = useI18n()
 
 const search = ref('')
 const handleRef = ref()

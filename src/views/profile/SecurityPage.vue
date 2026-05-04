@@ -1,57 +1,37 @@
 <template>
     <ion-page>
         <AppHeader title="Security" :show-back="true" back-href="/profile" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-                <!-- Menu List -->
                 <div class="menu-list">
                     <div class="menu-item" @click="handleChangePassword">
-                        <span class="menu-label">Change Password</span>
+                        <span class="menu-label">{{ t('security.changePassword') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
                     <div class="divider" />
                     <div class="menu-item" @click="handleChangePIN">
-                        <span class="menu-label">Change PIN</span>
+                        <span class="menu-label">{{ t('security.changePin') }}</span>
                         <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
                     </div>
-                    <!-- <div class="divider" />
-                    <div class="menu-item" @click="handleSecurity">
-                        <span class="menu-label">Security</span>
-                        <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
-                    </div>
-                    <div class="divider" />
-                    <div class="menu-item" @click="handleHelpCenter">
-                        <span class="menu-label">Help Center</span>
-                        <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
-                    </div>
-                    <div class="divider" />
-                    <div class="menu-item" @click="handleLogOut">
-                        <span class="menu-label">Log Out</span>
-                        <ion-icon :icon="chevronForwardOutline" class="menu-chevron" />
-                    </div> -->
                     <div class="divider" />
                 </div>
-
-                <!-- Version -->
-                <!-- <div class="version-text">v1.4.11</div>
-                <div class="copyright-text">© {{ currentYear }} MyUang. All rights reserved.</div> -->
-
             </div>
         </ion-content>
     </ion-page>
 </template>
 
 <script setup lang="ts">
-import { IonPage, IonContent, IonIcon} from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
+import { IonPage, IonContent, IonIcon } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 import AppHeader from '../components/AppHeader.vue'
 import { useRouter } from 'vue-router'
 
 const router = useRouter()
+const { t } = useI18n()
 
 const handleChangePassword = () => router.push('/change-password')
-const handleChangePIN = () => router.push('/change-pin')    
+const handleChangePIN = () => router.push('/change-pin')
 </script>
 
 <style scoped>

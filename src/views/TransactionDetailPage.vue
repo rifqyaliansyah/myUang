@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <AppHeader title="Transaction Detail" :show-back="true" back-href="/" :show-menu="false" />
+        <AppHeader :title="t('transactionDetail.title')" :show-back="true" back-href="/" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
@@ -10,7 +10,6 @@
                 </div>
 
                 <template v-else-if="tx">
-                    <!-- Cover Image -->
                     <div class="tx-cover" v-if="tx.image_url">
                         <img :src="tx.image_url" :alt="tx.note" class="cover-img" />
                     </div>
@@ -25,17 +24,17 @@
                         <div class="tx-detail-divider" />
 
                         <div class="tx-detail-row" v-if="tx.pocket_name">
-                            <span class="tx-detail-label">Pocket</span>
+                            <span class="tx-detail-label">{{ t('transactionDetail.pocket') }}</span>
                             <span class="tx-detail-value">{{ tx.pocket_emoji }} {{ tx.pocket_name }}</span>
                         </div>
 
                         <div class="tx-detail-row" v-if="tx.goal_name">
-                            <span class="tx-detail-label">Goal</span>
+                            <span class="tx-detail-label">{{ t('transactionDetail.goal') }}</span>
                             <span class="tx-detail-value">{{ tx.goal_name }}</span>
                         </div>
 
                         <div class="tx-detail-row" v-if="tx.note">
-                            <span class="tx-detail-label">Note</span>
+                            <span class="tx-detail-label">{{ t('transactionDetail.note') }}</span>
                             <span class="tx-detail-value">{{ tx.note }}</span>
                         </div>
                     </div>
@@ -43,7 +42,7 @@
 
                 <template v-else-if="!loading">
                     <div class="empty-state">
-                        <p>Transaction not found</p>
+                        <p>{{ t('transactionDetail.notFound') }}</p>
                     </div>
                 </template>
 
@@ -59,6 +58,9 @@ import { useRoute } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { useTransactionStore } from '@/stores/transaction'
 import type { Transaction } from '@/stores/transaction'
+import { useI18n } from 'vue-i18n'
+
+const { t, tm } = useI18n()
 
 const route = useRoute()
 const transactionStore = useTransactionStore()
@@ -68,12 +70,9 @@ const loading = ref(false)
 const tx = ref<Transaction | null>(null)
 
 const typeLabel = computed(() => {
-    const map: Record<string, string> = {
-        income: 'Income',
-        expense: 'Expense',
-        goal_topup: 'Goal Top Up',
-    }
-    return tx.value ? map[tx.value.type] ?? 'Transaction' : ''
+    if (!tx.value) return ''
+    const types = tm('transactionDetail.types') as Record<string, string>
+    return types[tx.value.type] ?? types['default']
 })
 
 onMounted(async () => {
@@ -84,7 +83,7 @@ onMounted(async () => {
             ...transactionStore.pocketActivities,
             ...transactionStore.goalActivities,
         ]
-        const found = all.find(t => t.id === txId)
+        const found = all.find(item => item.id === txId)
         if (found) tx.value = found
     } finally {
         loading.value = false

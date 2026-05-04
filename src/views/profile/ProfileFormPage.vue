@@ -1,13 +1,9 @@
 <template>
     <ion-page>
         <AppHeader title="Edit Profile" :show-back="true" back-href="/profile" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="form-content">
-
-                    <!-- Avatar -->
                     <div class="avatar-section">
                         <div class="avatar-wrapper">
                             <img :src="previewAvatar" alt="avatar" class="avatar-img" />
@@ -21,41 +17,37 @@
                         </div>
                     </div>
 
-                    <!-- Name -->
                     <div class="form-group">
-                        <ion-label>Name</ion-label>
+                        <ion-label>{{ t('editProfile.name') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="name" type="text" placeholder="Name" class="custom-input" />
+                            <ion-input v-model="name" type="text" :placeholder="t('editProfile.name')"
+                                class="custom-input" />
                         </div>
                     </div>
 
-                    <!-- Email (disabled) -->
                     <div class="form-group">
-                        <ion-label>Email</ion-label>
+                        <ion-label>{{ t('editProfile.email') }}</ion-label>
                         <div class="input-wrapper input-wrapper--disabled">
-                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input"
-                                :disabled="true" />
+                            <ion-input v-model="email" type="email" :placeholder="t('editProfile.email')"
+                                class="custom-input" :disabled="true" />
                         </div>
                     </div>
 
-                    <!-- Quotes -->
                     <div class="form-group">
-                        <ion-label>Quotes</ion-label>
+                        <ion-label>{{ t('editProfile.quotes') }}</ion-label>
                         <div class="input-wrapper textarea-wrapper">
-                            <textarea v-model="quotes" placeholder="Quotes" class="custom-textarea" rows="4" />
+                            <textarea v-model="quotes" :placeholder="t('editProfile.quotes')" class="custom-textarea"
+                                rows="4" />
                         </div>
                     </div>
-
                 </div>
 
-                <!-- Save Button -->
                 <div class="footer">
                     <ion-button expand="block" class="save-btn" :disabled="!name || isSubmitting" @click="handleSave">
                         <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>Save</span>
+                        <span v-else>{{ t('editProfile.btn') }}</span>
                     </ion-button>
                 </div>
-
             </div>
         </ion-content>
     </ion-page>
@@ -63,17 +55,18 @@
 
 <script setup lang="ts">
 import { ref, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController, IonIcon } from '@ionic/vue'
-import { closeOutline, pencilOutline } from 'ionicons/icons'
+import { closeOutline } from 'ionicons/icons'
 import { useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
 import { useAuthStore } from '@/stores/auth'
 import profileService from '@/services/profile.service'
 
 const DEFAULT_AVATAR = '/assets/image/default.jpg'
-
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const name = ref('')
 const email = ref('')
@@ -97,37 +90,25 @@ async function showToast(message: string, color = 'danger') {
     await toast.present()
 }
 
-const triggerFilePicker = () => {
-    fileInputRef.value?.click()
-}
-
+const triggerFilePicker = () => { fileInputRef.value?.click() }
 const handleFileChange = (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0]
-    if (file) {
-        avatarFile.value = file                 
-        previewAvatar.value = URL.createObjectURL(file)
-    }
+    if (file) { avatarFile.value = file; previewAvatar.value = URL.createObjectURL(file) }
 }
-
 const handleSave = async () => {
     if (!name.value) return
     isSubmitting.value = true
     try {
-        const res = await profileService.updateProfile({
-            name: name.value,
-            quotes: quotes.value,
-            avatar: avatarFile.value,
-        })
+        const res = await profileService.updateProfile({ name: name.value, quotes: quotes.value, avatar: avatarFile.value })
         auth.setUser(res.data.data)
-        showToast('Profile updated', 'success')
+        showToast(t('editProfile.toastSuccess'), 'success')
         router.back()
     } catch {
-        showToast('Failed to update profile')
+        showToast(t('editProfile.toastFailed'))
     } finally {
         isSubmitting.value = false
     }
 }
-
 const clearAvatar = () => {
     avatarFile.value = null
     previewAvatar.value = auth.user?.avatar_url || DEFAULT_AVATAR

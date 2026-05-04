@@ -1,16 +1,14 @@
 <template>
     <ion-page>
-        <AppHeader title="Budgeting" :show-back="false" :show-menu="false" />
+        <AppHeader :title="t('budgeting.title')" :show-back="false" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Loading -->
                 <div v-if="pocketStore.loading" class="loading-wrapper">
                     <ion-spinner name="crescent" />
                 </div>
 
-                <!-- Pocket Card -->
                 <template v-else>
                     <div class="pocket-card" v-for="pocket in pocketStore.pockets" :key="pocket.id">
                         <div class="pocket-card-header">
@@ -35,50 +33,47 @@
                         </div>
 
                         <div class="pocket-used">
-                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} used
+                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} {{
+                            t('budgeting.used') }}
                         </div>
                         <div class="pocket-desc">{{ pocket.description }}</div>
 
-                        <!-- Popover -->
                         <ion-popover :trigger="`pocket-menu-${pocket.id}`" side="bottom" alignment="end"
                             trigger-action="click" :dismiss-on-select="true" :show-backdrop="false"
                             :style="popoverStyle" class="pocket-popover">
                             <ion-content class="popover-content">
                                 <div class="menu-item" @click="handleDetails(pocket)">
-                                    <span>Details</span>
+                                    <span>{{ t('budgeting.details') }}</span>
                                 </div>
                                 <div class="menu-divider"></div>
                                 <div class="menu-item" @click="handleEdit(pocket)">
-                                    <span>Edit</span>
+                                    <span>{{ t('budgeting.edit') }}</span>
                                 </div>
                                 <div class="menu-divider"></div>
                                 <div class="menu-item menu-item--danger" @click="handleDelete(pocket)">
-                                    <span>Delete</span>
+                                    <span>{{ t('budgeting.delete') }}</span>
                                 </div>
                             </ion-content>
                         </ion-popover>
                     </div>
 
-                    <!-- Add New Pocket -->
                     <div class="add-pocket-btn" @click="handleAddPocket">
-                        <span>Add New Pocket</span>
+                        <span>{{ t('budgeting.addNewPocket') }}</span>
                     </div>
                 </template>
 
             </div>
         </ion-content>
 
-        <!-- FAB Button -->
         <ion-fab vertical="bottom" horizontal="end" slot="fixed">
             <ion-fab-button class="fab-btn" @click="handleAddRecord">
                 <ion-icon :icon="addOutline" class="fab-icon" />
             </ion-fab-button>
         </ion-fab>
 
-        <!-- Delete Confirmation Modal -->
-        <ion-alert :is-open="showDeleteAlert" header="Are you sure to delete?"
-            message="Your pocket will be permanently deleted" :buttons="alertButtons"
-            @didDismiss="showDeleteAlert = false" class="delete-alert" />
+        <ion-alert :is-open="showDeleteAlert" :header="t('budgeting.deleteHeader')"
+            :message="t('budgeting.deleteMessage')" :buttons="alertButtons" @didDismiss="showDeleteAlert = false"
+            class="delete-alert" />
     </ion-page>
 </template>
 
@@ -89,6 +84,9 @@ import { useRouter } from 'vue-router'
 import AppHeader from './components/AppHeader.vue'
 import { ellipsisVertical, addOutline } from 'ionicons/icons'
 import { usePocketStore, type Pocket } from '@/stores/pocket'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const pocketStore = usePocketStore()
@@ -117,9 +115,9 @@ const alertButtons = computed(() => [
             if (pocketToDelete.value) {
                 try {
                     await pocketStore.deletePocket(pocketToDelete.value.id)
-                    showToast('Pocket deleted', 'success')
+                    showToast(t('budgeting.deleteSuccess'), 'success')
                 } catch {
-                    showToast('Failed to delete pocket')
+                    showToast(t('budgeting.deleteFailed'))
                 } finally {
                     pocketToDelete.value = null
                 }
@@ -138,10 +136,7 @@ const popoverStyle = computed(() => {
     return `--offset-x: ${offset}px;`
 })
 
-const formatAmount = (value: number) => {
-    const num = Number(value) || 0
-    return Math.floor(num).toLocaleString('id-ID')
-}
+const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleString('id-ID')
 
 const progressPercent = (pocket: Pocket) => {
     if (!pocket.budget_limit) return 0

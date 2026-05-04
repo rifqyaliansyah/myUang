@@ -7,31 +7,29 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Forgot your password?</h1>
-                    <p>Please enter your email address and we will send you link to reset your password</p>
+                    <h1>{{ t('forgotPassword.title') }}</h1>
+                    <p>{{ t('forgotPassword.subtitle') }}</p>
                 </div>
 
-                <!-- Form -->
                 <div class="login-form">
-                    <!-- Email -->
                     <div class="form-group">
-                        <ion-label>Email</ion-label>
+                        <ion-label>{{ t('forgotPassword.email') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input" />
+                            <ion-input v-model="email" type="email" :placeholder="t('forgotPassword.email')"
+                                class="custom-input" />
                         </div>
                     </div>
                 </div>
 
-                <!-- Footer -->
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn" :disabled="!email" @click="handleSendRequest">
-                        Send Request
+                        {{ t('forgotPassword.btn') }}
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
 
                     <p class="signup-text">
                         <ion-button fill="clear" class="signup-btn" router-link="/login">
-                            Back to Login
+                            {{ t('forgotPassword.backToLogin') }}
                         </ion-button>
                     </p>
                 </div>
@@ -42,20 +40,14 @@
 
 <script setup lang="ts">
 import { ref } from 'vue'
-import {
-    IonPage,
-    IonContent,
-    IonLabel,
-    IonInput,
-    IonButton,
-    IonIcon,
-} from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 
+const { t } = useI18n()
 const email = ref('')
 
 const handleSendRequest = () => {
-    // handle forgot password logic
     console.log('Send reset password to:', email.value)
 }
 </script>

@@ -1,26 +1,23 @@
 <template>
     <ion-page>
-        <AppHeader :title="isEdit ? 'Edit Pocket' : 'Add Pocket'" :show-back="true" back-href="/budgeting"
-            :show-menu="false" />
+        <AppHeader :title="isEdit ? t('pocketForm.titleEdit') : t('pocketForm.titleAdd')" :show-back="true"
+            back-href="/budgeting" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="form-content">
 
-                    <!-- Name -->
                     <div class="form-group">
-                        <ion-label>Name</ion-label>
+                        <ion-label>{{ t('pocketForm.name') }}</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="emoji-label" @click="showEmojiPicker = true">{{ emoji }}</span>
-                            <ion-input v-model="name" type="text" placeholder="Name"
+                            <ion-input v-model="name" type="text" :placeholder="t('pocketForm.name')"
                                 class="custom-input amount-input" />
                         </div>
                     </div>
 
-                    <!-- Amount -->
                     <div class="form-group">
-                        <ion-label>Amount</ion-label>
+                        <ion-label>{{ t('pocketForm.amount') }}</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="currency-label">IDR</span>
                             <ion-input v-model="displayAmount" type="text" inputmode="numeric" placeholder="0"
@@ -28,25 +25,22 @@
                         </div>
                     </div>
 
-                    <!-- Description -->
                     <div class="form-group">
-                        <ion-label>Description (Optional)</ion-label>
+                        <ion-label>{{ t('pocketForm.description') }}</ion-label>
                         <div class="input-wrapper textarea-wrapper">
-                            <textarea v-model="description" placeholder="Description (Optional)" class="custom-textarea"
-                                rows="4" />
+                            <textarea v-model="description" :placeholder="t('pocketForm.description')"
+                                class="custom-textarea" rows="4" />
                         </div>
                     </div>
                 </div>
 
-                <!-- Save Button -->
                 <div class="footer">
                     <ion-button expand="block" class="save-btn" :disabled="!name || !amount || isSubmitting"
                         @click="handleSubmit">
                         <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>{{ isEdit ? 'Save' : 'Add Pocket' }}</span>
+                        <span v-else>{{ isEdit ? t('pocketForm.btnSave') : t('pocketForm.btnAdd') }}</span>
                     </ion-button>
                 </div>
-
             </div>
         </ion-content>
 
@@ -56,6 +50,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
@@ -65,6 +60,7 @@ import { usePocketStore } from '@/stores/pocket'
 const route = useRoute()
 const router = useRouter()
 const pocketStore = usePocketStore()
+const { t } = useI18n()
 
 const isEdit = computed(() => route.name === 'Edit Pocket')
 const isSubmitting = ref(false)
@@ -116,14 +112,14 @@ const handleSubmit = async () => {
         }
         if (isEdit.value) {
             await pocketStore.updatePocket(route.params.id as string, payload)
-            showToast('Pocket updated', 'success')
+            showToast(t('pocketForm.toastUpdated'), 'success')
         } else {
             await pocketStore.createPocket(payload)
-            showToast('Pocket added', 'success')
+            showToast(t('pocketForm.toastAdded'), 'success')
         }
         router.back()
     } catch {
-        showToast('Failed to save pocket')
+        showToast(t('pocketForm.toastFailed'))
     } finally {
         isSubmitting.value = false
     }

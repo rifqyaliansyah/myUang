@@ -1,8 +1,8 @@
 <template>
     <ion-page>
-        <AppHeader title="Notification Detail" :show-back="true" back-href="/notification" :show-menu="true"
+        <AppHeader :title="t('notificationDetail.title')" :show-back="true" back-href="/notification" :show-menu="true"
             menu-trigger-id="notif-detail-menu" :menu-items="[
-                { label: 'Delete', handler: handleDelete, danger: true },
+                { label: t('notificationDetail.delete'), handler: handleDelete, danger: true },
             ]" />
 
         <ion-content class="page-content" :fullscreen="true">
@@ -35,6 +35,9 @@ import AppHeader from './components/AppHeader.vue'
 import { useNotificationStore } from '@/stores/notification'
 import notificationService from '@/services/notification.service'
 import type { Notification } from '@/stores/notification'
+import { useI18n } from 'vue-i18n'
+
+const { t, tm } = useI18n()
 
 const route = useRoute()
 const router = useRouter()
@@ -45,14 +48,9 @@ const loading = ref(false)
 const notif = ref<Notification | null>(null)
 
 const typeLabel = computed(() => {
-    const map: Record<string, string> = {
-        income: '💰 Income',
-        pocket_warning: '⚠️ Budget Warning',
-        pocket_over: '🚨 Over Budget',
-        goal_progress: '🎯 Goal Progress',
-        goal_complete: '🎉 Goal Complete',
-    }
-    return notif.value ? map[notif.value.type] ?? 'Notification' : ''
+    if (!notif.value) return ''
+    const types = tm('notificationDetail.types') as Record<string, string>
+    return types[notif.value.type] ?? types['default']
 })
 
 onMounted(async () => {

@@ -2,17 +2,15 @@
     <ion-page>
         <ion-content class="login-content" :fullscreen="true">
             <div class="login-wrapper">
-                <!-- Header -->
                 <div class="login-header">
                     <img src="/assets/image/check.png" alt="success" class="success-image" />
-                    <h1>Great, PIN Successfully Created</h1>
-                    <p>Happy managing your finances with MyUang!</p>
+                    <h1>{{ t('welcome.title') }}</h1>
+                    <p>{{ t('welcome.subtitle') }}</p>
                 </div>
 
-                <!-- Footer -->
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn" @click="handleGoHome">
-                        Okay Let's Go
+                        {{ t('welcome.btn') }}
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
                 </div>
@@ -23,19 +21,14 @@
 
 <script setup lang="ts">
 import { useRouter } from 'vue-router'
-import {
-    IonPage,
-    IonContent,
-    IonButton,
-    IonIcon,
-} from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
+import { IonPage, IonContent, IonButton, IonIcon } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
 
 const router = useRouter()
+const { t } = useI18n()
 
-const handleGoHome = () => {
-    router.push('/')
-}
+const handleGoHome = () => router.push('/')
 </script>
 
 <style scoped>

@@ -1,44 +1,41 @@
 <template>
     <ion-page>
-        <AppHeader title="Add Money Record" :show-back="true" back-href="/" :show-menu="false" />
+        <AppHeader :title="t('addMoneyRecord.title')" :show-back="true" back-href="/" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
 
-                <!-- Name -->
                 <div class="form-group">
-                    <ion-label>Name</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.name') }}</ion-label>
                     <div class="input-wrapper">
-                        <ion-input v-model="name" type="text" placeholder="Name" class="custom-input" />
+                        <ion-input v-model="name" type="text" :placeholder="t('addMoneyRecord.name')"
+                            class="custom-input" />
                     </div>
                 </div>
 
-                <!-- Type -->
                 <div class="form-group">
-                    <ion-label>Type</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.type') }}</ion-label>
                     <div class="radio-wrapper">
                         <label class="radio-option">
                             <input type="radio" v-model="type" value="income" />
-                            <span>Income</span>
+                            <span>{{ t('addMoneyRecord.income') }}</span>
                         </label>
                         <label class="radio-option">
                             <input type="radio" v-model="type" value="expense" />
-                            <span>Expense</span>
+                            <span>{{ t('addMoneyRecord.expense') }}</span>
                         </label>
                     </div>
                 </div>
 
-                <!-- Date -->
                 <div class="form-group">
-                    <ion-label>Date</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.date') }}</ion-label>
                     <div class="input-wrapper">
                         <ion-input v-model="date" type="date" class="custom-input date-input" />
                     </div>
                 </div>
 
-                <!-- Amount -->
                 <div class="form-group">
-                    <ion-label>Amount</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.amount') }}</ion-label>
                     <div class="input-wrapper amount-wrapper">
                         <span class="currency-label">IDR</span>
                         <ion-input v-model="displayAmount" type="text" inputmode="numeric" placeholder="0"
@@ -46,12 +43,11 @@
                     </div>
                 </div>
 
-                <!-- Choose Pocket -->
                 <div class="form-group" v-if="type === 'expense'">
-                    <ion-label>Choose Pocket (Optional)</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.choosePocket') }}</ion-label>
                     <div class="input-wrapper select-wrapper">
                         <select v-model="pocket" class="custom-select">
-                            <option value="">Select pocket</option>
+                            <option value="">{{ t('addMoneyRecord.selectPocket') }}</option>
                             <option v-for="p in pocketStore.pockets" :key="p.id" :value="p.id">
                                 {{ p.emoji }} {{ p.name }}
                             </option>
@@ -60,35 +56,32 @@
                     </div>
                 </div>
 
-                <!-- Description -->
                 <div class="form-group">
-                    <ion-label>Description (Optional)</ion-label>
+                    <ion-label>{{ t('addMoneyRecord.description') }}</ion-label>
                     <div class="input-wrapper textarea-wrapper">
-                        <textarea v-model="description" placeholder="Description (Optional)" class="custom-textarea"
-                            rows="4" />
+                        <textarea v-model="description" :placeholder="t('addMoneyRecord.description')"
+                            class="custom-textarea" rows="4" />
                     </div>
                 </div>
 
-                <!-- Attachment -->
                 <div class="form-group">
                     <div class="attachment-wrapper" @click="triggerFilePicker">
                         <ion-icon :icon="imageFile ? closeOutline : documentOutline" class="attachment-icon"
                             :class="{ 'attachment-icon--filled': imageFile }"
                             @click.stop="imageFile ? clearFile() : undefined" />
                         <span class="attachment-label" :class="{ 'attachment-label--filled': imageFile }">
-                            {{ imageFile ? imageFile.name : 'Add Attachment' }}
+                            {{ imageFile ? imageFile.name : t('addMoneyRecord.addAttachment') }}
                         </span>
                     </div>
                     <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp" style="display:none"
                         @change="handleFileChange" />
                 </div>
 
-                <!-- Save Button -->
                 <div class="footer">
                     <ion-button expand="block" class="save-btn" :disabled="!name || !date || !amount || isSubmitting"
                         @click="handleSave">
                         <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>Save</span>
+                        <span v-else>{{ t('addMoneyRecord.save') }}</span>
                     </ion-button>
                 </div>
 
@@ -106,6 +99,9 @@ import { chevronDownOutline, documentOutline, closeOutline } from 'ionicons/icon
 import { useWalletStore } from '@/stores/wallet'
 import { usePocketStore } from '@/stores/pocket'
 import { useTransactionStore } from '@/stores/transaction'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const walletStore = useWalletStore()
@@ -155,7 +151,6 @@ onMounted(async () => {
         }
     `
     document.head.appendChild(style)
-
     if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
     if (pocketStore.pockets.length === 0) await pocketStore.fetchPockets()
 })
@@ -166,7 +161,7 @@ async function showToast(message: string, color = 'danger') {
 }
 
 const handleSave = async () => {
-    if (!activeWallet.value) return showToast('No active wallet')
+    if (!activeWallet.value) return showToast(t('addMoneyRecord.noActiveWallet'))
     if (!name.value || !date.value || !amount.value) return
 
     isSubmitting.value = true
@@ -182,10 +177,10 @@ const handleSave = async () => {
         })
         await walletStore.fetchWallets()
         await pocketStore.fetchPockets()
-        showToast('Record saved', 'success')
+        showToast(t('addMoneyRecord.saveSuccess'), 'success')
         router.back()
     } catch (err: any) {
-        showToast(err?.response?.data?.message || 'Failed to save record')
+        showToast(err?.response?.data?.message || t('addMoneyRecord.saveFailed'))
     } finally {
         isSubmitting.value = false
     }

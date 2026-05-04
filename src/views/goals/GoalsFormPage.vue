@@ -1,23 +1,21 @@
 <template>
     <ion-page>
-        <AppHeader :title="isEdit ? 'Edit Goals' : 'Add New Goals'" :show-back="true" back-href="/goals"
-            :show-menu="false" />
+        <AppHeader :title="isEdit ? t('goalsForm.titleEdit') : t('goalsForm.titleAdd')" :show-back="true"
+            back-href="/goals" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
                 <div class="form-content">
-
-                    <!-- Goals Name -->
                     <div class="form-group">
-                        <ion-label>Goals Name</ion-label>
+                        <ion-label>{{ t('goalsForm.name') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="name" type="text" placeholder="Goals Name" class="custom-input" />
+                            <ion-input v-model="name" type="text" :placeholder="t('goalsForm.name')"
+                                class="custom-input" />
                         </div>
                     </div>
 
-                    <!-- Amount -->
                     <div class="form-group">
-                        <ion-label>Amount</ion-label>
+                        <ion-label>{{ t('goalsForm.amount') }}</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="currency-label">IDR</span>
                             <ion-input v-model="displayAmount" type="text" inputmode="numeric" placeholder="0"
@@ -25,37 +23,33 @@
                         </div>
                     </div>
 
-                    <!-- Description -->
                     <div class="form-group">
-                        <ion-label>Description (Optional)</ion-label>
+                        <ion-label>{{ t('goalsForm.description') }}</ion-label>
                         <div class="input-wrapper textarea-wrapper">
-                            <textarea v-model="description" placeholder="Description (Optional)" class="custom-textarea"
-                                rows="4" />
+                            <textarea v-model="description" :placeholder="t('goalsForm.description')"
+                                class="custom-textarea" rows="4" />
                         </div>
                     </div>
 
-                   <!-- Attachment -->
                     <div class="form-group">
                         <div class="attachment-wrapper" @click="triggerFilePicker">
                             <ion-icon :icon="imageFile ? closeOutline : documentOutline" class="attachment-icon"
                                 :class="{ 'attachment-icon--filled': imageFile }"
                                 @click.stop="imageFile ? clearFile() : undefined" />
                             <span class="attachment-label" :class="{ 'attachment-label--filled': imageFile }">
-                                {{ imageFile ? imageFile.name : 'Add Attachment' }}
+                                {{ imageFile ? imageFile.name : t('goalsForm.attachment') }}
                             </span>
                         </div>
                         <input ref="fileInputRef" type="file" accept="image/jpeg,image/png,image/webp"
                             style="display:none" @change="handleFileChange" />
                     </div>
-
                 </div>
 
-                <!-- Save Button -->
                 <div class="footer">
                     <ion-button expand="block" class="save-btn" :disabled="!name || !amount || isSubmitting"
                         @click="handleSubmit">
                         <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>{{ isEdit ? 'Save' : 'Add Goal' }}</span>
+                        <span v-else>{{ isEdit ? t('goalsForm.btnSave') : t('goalsForm.btnAdd') }}</span>
                     </ion-button>
                 </div>
             </div>
@@ -65,6 +59,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import { documentOutline, closeOutline } from 'ionicons/icons'
@@ -74,10 +69,10 @@ import { useGoalStore } from '@/stores/goal'
 const route = useRoute()
 const router = useRouter()
 const goalStore = useGoalStore()
+const { t } = useI18n()
 
 const isEdit = computed(() => route.name === 'Edit Goals')
 const isSubmitting = ref(false)
-
 const name = ref('')
 const amount = ref('')
 const displayAmount = ref('')
@@ -106,20 +101,15 @@ async function showToast(message: string, color = 'danger') {
     await toast.present()
 }
 
-const triggerFilePicker = () => {
-    if (!imageFile.value) fileInputRef.value?.click()
-}
-
+const triggerFilePicker = () => { if (!imageFile.value) fileInputRef.value?.click() }
 const handleFileChange = (e: Event) => {
     const file = (e.target as HTMLInputElement).files?.[0]
     if (file) imageFile.value = file
 }
-
 const clearFile = () => {
     imageFile.value = null
     if (fileInputRef.value) fileInputRef.value.value = ''
 }
-
 const handleAmountInput = (e: any) => {
     const raw = e.target.value.replace(/\D/g, '')
     amount.value = raw
@@ -130,22 +120,17 @@ const handleSubmit = async () => {
     if (!name.value || !amount.value) return
     isSubmitting.value = true
     try {
-        const payload = {
-            name: name.value,
-            target_amount: Number(amount.value),
-            description: description.value,
-            image: imageFile.value,
-        }
+        const payload = { name: name.value, target_amount: Number(amount.value), description: description.value, image: imageFile.value }
         if (isEdit.value) {
             await goalStore.updateGoal(route.params.id as string, payload)
-            showToast('Goal updated', 'success')
+            showToast(t('goalsForm.toastUpdated'), 'success')
         } else {
             await goalStore.createGoal(payload)
-            showToast('Goal added', 'success')
+            showToast(t('goalsForm.toastAdded'), 'success')
         }
         router.back()
     } catch {
-        showToast('Failed to save goal')
+        showToast(t('goalsForm.toastFailed'))
     } finally {
         isSubmitting.value = false
     }

@@ -7,8 +7,8 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Enter PIN</h1>
-                    <p>Enter your PIN to continue</p>
+                    <h1>{{ t('verifyPin.title') }}</h1>
+                    <p>{{ t('verifyPin.subtitle') }}</p>
                 </div>
 
                 <div class="pin-dots">
@@ -36,22 +36,21 @@
                     </div>
                 </div>
 
-                <!-- Bottom actions -->
                 <div class="bottom-actions">
                     <ion-button fill="clear" class="action-btn" @click="showLogoutAlert = true">
-                        Use another account
+                        {{ t('verifyPin.useAnotherAccount') }}
                     </ion-button>
                     <ion-button fill="clear" class="action-btn action-btn-right" @click="showPasswordModal = true">
-                        Use password
+                        {{ t('verifyPin.usePassword') }}
                     </ion-button>
                 </div>
             </div>
         </ion-content>
 
         <!-- Switch account alert -->
-        <ion-alert :is-open="showLogoutAlert" header="Switch Account?"
-            message="You will be logged out from your current account." :buttons="logoutButtons"
-            @didDismiss="showLogoutAlert = false" class="logout-alert" />
+        <ion-alert :is-open="showLogoutAlert" :header="t('verifyPin.switchAccount')"
+            :message="t('verifyPin.switchMessage')" :buttons="logoutButtons" @didDismiss="showLogoutAlert = false"
+            class="logout-alert" />
 
         <!-- Use password modal -->
         <ion-modal :is-open="showPasswordModal" :initial-breakpoint="0.55" :breakpoints="[0, 0.55]" handle="false"
@@ -59,14 +58,13 @@
             <ion-content class="modal-content">
                 <div class="modal-wrapper">
                     <div class="sheet-handle" />
-
-                    <div class="modal-title">Use Password</div>
+                    <div class="modal-title">{{ t('verifyPin.usePasswordTitle') }}</div>
 
                     <div class="form-group">
-                        <ion-label>Password</ion-label>
+                        <ion-label>{{ t('verifyPin.password') }}</ion-label>
                         <div class="input-wrapper">
                             <ion-input v-model="password" :type="showPassword ? 'text' : 'password'"
-                                placeholder="Password" class="custom-input-password">
+                                :placeholder="t('verifyPin.password')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showPassword = !showPassword">
                                     <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
@@ -78,14 +76,14 @@
 
                     <div class="forgot-wrapper">
                         <ion-button fill="clear" class="forgot-btn" @click="goToForgotPassword">
-                            Forgot Password?
+                            {{ t('verifyPin.forgot') }}
                         </ion-button>
                     </div>
 
                     <ion-button expand="block" class="login-btn" :disabled="!password || isPasswordLoading"
                         @click="handlePasswordLogin">
                         <ion-spinner v-if="isPasswordLoading" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>Continue</span>
+                        <span v-else>{{ t('verifyPin.continue') }}</span>
                     </ion-button>
                 </div>
             </ion-content>
@@ -96,6 +94,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import {
     IonPage, IonContent, IonButton, IonAlert, IonModal,
     IonLabel, IonInput, IonIcon, IonSpinner, toastController
@@ -106,13 +105,12 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const currentPin = ref('')
 const errorMessage = ref('')
 const isLoading = ref(false)
 const showLogoutAlert = ref(false)
-
-// Password modal
 const showPasswordModal = ref(false)
 const password = ref('')
 const showPassword = ref(false)
@@ -133,7 +131,6 @@ async function showToast(message: string, color = 'danger') {
 
 async function handleKey(key: string) {
     if (isLoading.value) return
-
     if (key === 'del') {
         if (currentPin.value.length > 0) {
             currentPin.value = currentPin.value.slice(0, -1)
@@ -141,9 +138,7 @@ async function handleKey(key: string) {
         }
         return
     }
-
     if (key === '' || currentPin.value.length >= 4) return
-
     errorMessage.value = ''
     currentPin.value += key
 
@@ -152,13 +147,11 @@ async function handleKey(key: string) {
         try {
             const res = await authService.verifyPin(currentPin.value, auth.tempToken!)
             const { accessToken, refreshToken } = res.data.data
-
             auth.setTokens(accessToken, refreshToken)
             auth.setPinVerified()
-
             router.replace('/')
         } catch (err: any) {
-            errorMessage.value = err.response?.data?.message || 'Invalid PIN'
+            errorMessage.value = err.response?.data?.message || t('verifyPin.invalidPin')
             currentPin.value = ''
         } finally {
             isLoading.value = false
@@ -180,14 +173,12 @@ const handlePasswordLogin = async () => {
     try {
         const res = await authService.verifyByPassword(password.value, auth.tempToken!)
         const { accessToken, refreshToken } = res.data.data
-
         auth.setTokens(accessToken, refreshToken)
         auth.setPinVerified()
-
         showPasswordModal.value = false
         router.replace('/')
     } catch (err: any) {
-        passwordError.value = err.response?.data?.message || 'Incorrect password'
+        passwordError.value = err.response?.data?.message || t('verifyPin.incorrectPassword')
     } finally {
         isPasswordLoading.value = false
     }
@@ -200,13 +191,13 @@ const goToForgotPassword = () => {
 
 const logoutButtons = computed(() => [
     {
-        text: 'Cancel',
+        text: t('verifyPin.cancel'),
         role: 'cancel',
         cssClass: 'alert-btn-no',
         handler: () => { showLogoutAlert.value = false },
     },
     {
-        text: 'Switch',
+        text: t('verifyPin.switch'),
         cssClass: 'alert-btn-yes-danger',
         handler: async () => {
             showLogoutAlert.value = false

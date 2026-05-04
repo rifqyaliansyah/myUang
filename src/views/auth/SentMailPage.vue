@@ -7,19 +7,16 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Request Sent Successfully</h1>
-                    <p>We already sent you link to reset your password?</p>
+                    <h1>{{ t('sentMail.title') }}</h1>
+                    <p>{{ t('sentMail.subtitle') }}</p>
                 </div>
 
-                <!-- Form (kosong, tanpa input) -->
-                <div class="login-form">
-                </div>
+                <div class="login-form"></div>
 
-                <!-- Footer -->
                 <div class="login-footer">
                     <p class="signup-text">
                         <ion-button fill="clear" class="signup-btn" router-link="/login">
-                            Back to Login
+                            {{ t('sentMail.backToLogin') }}
                         </ion-button>
                     </p>
                 </div>
@@ -29,15 +26,10 @@
 </template>
 
 <script setup lang="ts">
-import {
-    IonPage,
-    IonContent,
-    IonLabel,
-    IonButton,
-    IonIcon,
-} from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
+import { IonPage, IonContent, IonButton } from '@ionic/vue'
 
-// No need for email ref or handleSendRequest anymore
+const { t } = useI18n()
 </script>
 
 <style scoped>

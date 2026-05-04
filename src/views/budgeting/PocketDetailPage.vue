@@ -1,6 +1,6 @@
 <template>
     <ion-page>
-        <AppHeader title="Detail Pocket" :show-back="true" back-href="/budgeting" :show-menu="false" />
+        <AppHeader :title="t('pocketDetail.title')" :show-back="true" back-href="/budgeting" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
@@ -10,7 +10,6 @@
                 </div>
 
                 <template v-else-if="pocket">
-                    <!-- Pocket Summary Card -->
                     <div class="pocket-summary-card">
                         <div class="pocket-summary-header">
                             <span class="pocket-emoji">{{ pocket.emoji }}</span>
@@ -29,16 +28,16 @@
                         </div>
 
                         <div class="pocket-reached">
-                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} used
+                            IDR {{ formatAmount(pocket.used) }} of IDR {{ formatAmount(pocket.budget_limit) }} {{
+                                t('pocketDetail.used') }}
                         </div>
                     </div>
 
-                    <!-- Transaction History -->
-                    <div class="section-title">Transaction History</div>
+                    <div class="section-title">{{ t('pocketDetail.transactionHistory') }}</div>
 
                     <div class="transaction-list">
                         <div v-if="localTransactions.length === 0" class="empty-transactions">
-                            <p>No transactions yet</p>
+                            <p>{{ t('pocketDetail.noTransactions') }}</p>
                         </div>
                         <div class="transaction-card" v-for="tx in localTransactions" :key="tx.id"
                             @click="router.push(`/detail-transaction/${tx.id}`)" style="cursor: pointer;">
@@ -65,6 +64,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonSpinner, IonInfiniteScroll, IonInfiniteScrollContent } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
@@ -75,6 +75,7 @@ import type { Transaction } from '@/stores/transaction'
 const router = useRouter()
 const route = useRoute()
 const pocketStore = usePocketStore()
+const { t } = useI18n()
 
 const pocketId = route.params.id as string
 const loading = ref(false)
@@ -83,7 +84,6 @@ const LIMIT = 10
 let currentOffset = 0
 
 const pocket = computed(() => pocketStore.pockets.find(p => p.id === pocketId))
-
 const localTransactions = ref<Transaction[]>([])
 
 const progressPercent = computed(() => {
@@ -104,11 +104,7 @@ onMounted(async () => {
 async function loadInitial() {
     hasMore.value = true
     currentOffset = 0
-    const res = await transactionService.getTransactions({
-        pocketId,
-        limit: LIMIT,
-        offset: 0,
-    })
+    const res = await transactionService.getTransactions({ pocketId, limit: LIMIT, offset: 0 })
     localTransactions.value = res.data.data
     if (res.data.data.length < LIMIT) hasMore.value = false
 }
@@ -116,11 +112,7 @@ async function loadInitial() {
 async function loadMore(ev: any) {
     const nextOffset = currentOffset + LIMIT
     try {
-        const res = await transactionService.getTransactions({
-            pocketId,
-            limit: LIMIT,
-            offset: nextOffset,
-        })
+        const res = await transactionService.getTransactions({ pocketId, limit: LIMIT, offset: nextOffset })
         localTransactions.value = [...localTransactions.value, ...res.data.data]
         currentOffset = nextOffset
         if (res.data.data.length < LIMIT) hasMore.value = false

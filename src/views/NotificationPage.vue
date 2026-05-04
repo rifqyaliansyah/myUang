@@ -1,9 +1,9 @@
 <template>
     <ion-page>
-        <AppHeader title="Notification" :show-back="true" back-href="/" :show-menu="true" menu-trigger-id="notif-menu"
-            :menu-items="[
-                { label: 'Mark all read', handler: markAllRead },
-                { label: 'Remove all', handler: removeAll, danger: true },
+        <AppHeader :title="t('notification.title')" :show-back="true" back-href="/" :show-menu="true"
+            menu-trigger-id="notif-menu" :menu-items="[
+                { label: t('notification.markAllRead'), handler: markAllRead },
+                { label: t('notification.removeAll'), handler: removeAll, danger: true },
             ]" />
 
         <ion-content class="page-content" :fullscreen="true">
@@ -15,7 +15,7 @@
 
                 <template v-else>
                     <div v-if="notifStore.notifications.length === 0" class="empty-notif">
-                        <p>No notifications yet</p>
+                        <p>{{ t('notification.noNotifications') }}</p>
                     </div>
 
                     <div v-else class="notif-list">
@@ -24,8 +24,8 @@
                                 <ion-item class="notif-item" :class="{ 'notif-item--unread': !notif.is_read }"
                                     @click="goToDetail(notif.id)" lines="none">
                                     <div class="notif-info">
-                                        <p class="notif-title" :class="{ 'notif-title--unread': !notif.is_read }">{{
-                                            notif.title }}</p>
+                                        <p class="notif-title" :class="{ 'notif-title--unread': !notif.is_read }">
+                                            {{ notif.title }}</p>
                                         <p class="notif-desc">{{ notif.body }}</p>
                                     </div>
                                     <div class="notif-right" slot="end">
@@ -63,6 +63,9 @@ import {
 import { trashOutline } from 'ionicons/icons'
 import AppHeader from './components/AppHeader.vue'
 import { useNotificationStore } from '@/stores/notification'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const notifStore = useNotificationStore()
@@ -89,9 +92,7 @@ async function loadMore(ev: any) {
     }
 }
 
-const markAllRead = async () => {
-    await notifStore.markAllRead()
-}
+const markAllRead = async () => await notifStore.markAllRead()
 
 const removeAll = async () => {
     await notifStore.removeAll()
@@ -104,13 +105,8 @@ const formatTime = (dateStr: string) => {
     return d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' })
 }
 
-const goToDetail = (id: string) => {
-    router.push(`/notification/${id}`)
-}
-
-const deleteOne = async (id: string) => {
-    await notifStore.deleteOne(id)
-}
+const goToDetail = (id: string) => router.push(`/notification/${id}`)
+const deleteOne = async (id: string) => await notifStore.deleteOne(id)
 </script>
 
 <style scoped>

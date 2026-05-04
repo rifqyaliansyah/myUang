@@ -1,7 +1,6 @@
 <template>
     <ion-page>
         <ion-content class="page-content" :fullscreen="true">
-            <!-- Hero Header -->
             <div class="hero-header">
                 <div class="hero-top">
                     <div class="brand-wrapper">
@@ -21,7 +20,7 @@
                 <div class="hero-bottom">
                     <div class="wallet-selector-wrapper" id="wallet-trigger">
                         <div class="wallet-selector">
-                            <span class="wallet-label">{{ activeWallet?.name ?? 'Select Wallet' }}</span>
+                            <span class="wallet-label">{{ activeWallet?.name ?? t('home.selectWallet') }}</span>
                             <ion-icon :icon="chevronDownOutline" class="chevron-icon"
                                 :class="{ 'chevron-open': isDropdownOpen }" />
                         </div>
@@ -43,18 +42,16 @@
                             <div class="dropdown-divider"></div>
                             <div class="dropdown-item dropdown-manage" @click="router.push('/wallet')">
                                 <ion-icon :icon="walletOutline" class="manage-icon" />
-                                <span>Manage Wallets</span>
+                                <span>{{ t('home.manageWallets') }}</span>
                             </div>
                         </ion-content>
                     </ion-popover>
                 </div>
             </div>
 
-            <!-- Page Content -->
             <div class="page-wrapper">
-                <!-- Summary Header -->
                 <div class="summary-header">
-                    <span class="summary-title">Summary</span>
+                    <span class="summary-title">{{ t('home.summary') }}</span>
                     <div class="summary-period" id="period-trigger">
                         <span>{{ selectedLabel }}</span>
                         <ion-icon :icon="chevronDownOutline" class="period-chevron"
@@ -74,14 +71,13 @@
                     </ion-content>
                 </ion-popover>
 
-                <!-- Summary Grid -->
                 <div class="summary-grid">
                     <ion-card class="summary-card clickable" @click="router.push('/income-summary')">
                         <ion-card-content>
                             <ion-icon :icon="trendingUpOutline" class="card-icon income-icon" />
                             <div class="card-label income">
                                 <ion-icon :icon="caretUpOutline" class="trend-icon" />
-                                <span>Income</span>
+                                <span>{{ t('home.income') }}</span>
                             </div>
                             <p class="card-amount">IDR {{ formatAmount(transactionStore.summary.total_income) }}</p>
                         </ion-card-content>
@@ -92,7 +88,7 @@
                             <ion-icon :icon="trendingDownOutline" class="card-icon expense-icon" />
                             <div class="card-label expense">
                                 <ion-icon :icon="caretDownOutline" class="trend-icon" />
-                                <span>Expense</span>
+                                <span>{{ t('home.expense') }}</span>
                             </div>
                             <p class="card-amount">IDR {{ formatAmount(transactionStore.summary.total_expense) }}</p>
                         </ion-card-content>
@@ -102,9 +98,9 @@
                         <ion-card-content>
                             <ion-icon :icon="storefrontOutline" class="card-icon neutral-icon" />
                             <div class="card-label neutral">
-                                <span>Pockets</span>
+                                <span>{{ t('home.pockets') }}</span>
                             </div>
-                            <p class="card-amount">{{ pocketStore.pockets.length }} Pockets</p>
+                            <p class="card-amount">{{ pocketStore.pockets.length }} {{ t('home.pockets') }}</p>
                         </ion-card-content>
                     </ion-card>
 
@@ -112,16 +108,15 @@
                         <ion-card-content>
                             <ion-icon :icon="flagOutline" class="card-icon neutral-icon" />
                             <div class="card-label neutral">
-                                <span>Goals</span>
+                                <span>{{ t('home.goals') }}</span>
                             </div>
-                            <p class="card-amount">{{ goalStore.goals.length }} Goals</p>
+                            <p class="card-amount">{{ goalStore.goals.length }} {{ t('home.goals') }}</p>
                         </ion-card-content>
                     </ion-card>
                 </div>
 
-                <!-- Recent Transaction -->
                 <div class="section-header">
-                    <span class="section-title">Recent Transaction</span>
+                    <span class="section-title">{{ t('home.recentTransaction') }}</span>
                 </div>
 
                 <div class="transaction-list">
@@ -131,7 +126,7 @@
 
                     <template v-else>
                         <div v-if="transactionStore.transactions.length === 0" class="empty-tx">
-                            <p>No transactions yet</p>
+                            <p>{{ t('home.noTransactions') }}</p>
                         </div>
 
                         <ion-card class="transaction-card clickable" v-for="tx in transactionStore.transactions"
@@ -186,6 +181,9 @@ import {
     trendingUpOutline, trendingDownOutline, storefrontOutline, flagOutline
 } from 'ionicons/icons'
 import { usePeriodFilter, type PeriodKey } from '@/composables/usePeriodFilter'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const { selectedPeriod, selectedLabel, isDropdownOpen: isPeriodOpen, periodParams, PERIOD_OPTIONS } = usePeriodFilter()
 
@@ -198,10 +196,6 @@ const goalStore = useGoalStore()
 const notifStore = useNotificationStore()
 const isDropdownOpen = ref(false)
 
-// const now = new Date()
-// const currentMonth = now.getMonth() + 1
-// const currentYear = now.getFullYear()
-
 const DEFAULT_AVATAR = '/assets/image/default.jpg'
 const avatarUrl = computed(() => auth.user?.avatar_url || DEFAULT_AVATAR)
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
@@ -212,11 +206,10 @@ const loadTransactionData = async (walletId: string) => {
         transactionStore.fetchSummary(walletId, periodParams.value),
     ])
 }
+
 const selectPeriod = async (key: PeriodKey) => {
     selectedPeriod.value = key
-    if (activeWallet.value) {
-        await loadTransactionData(activeWallet.value.id)
-    }
+    if (activeWallet.value) await loadTransactionData(activeWallet.value.id)
 }
 
 onMounted(async () => {
@@ -232,9 +225,7 @@ onMounted(async () => {
         auth.setUser(res.data.data)
     } catch { /* fallback */ }
 
-    if (activeWallet.value) {
-        await loadTransactionData(activeWallet.value.id)
-    }
+    if (activeWallet.value) await loadTransactionData(activeWallet.value.id)
 })
 
 watch(activeWallet, async (wallet) => {
@@ -265,9 +256,9 @@ const formatDate = (dateStr: string) => {
 
 const txLabel = (tx: any) => {
     if (tx.note) return tx.note
-    if (tx.type === 'goal_topup') return `Goals: ${tx.goal_name ?? 'Goal'}`
-    if (tx.type === 'income') return 'Income'
-    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : 'Expense'
+    if (tx.type === 'goal_topup') return `${t('home.goals')}: ${tx.goal_name ?? 'Goal'}`
+    if (tx.type === 'income') return t('home.income')
+    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : t('home.expense')
 }
 
 const goToNotification = () => router.push('/notification')

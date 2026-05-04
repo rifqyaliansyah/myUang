@@ -1,82 +1,68 @@
 <template>
     <ion-page>
         <AppHeader title="About Us" :show-back="true" back-href="/profile" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="about-card">
-                    <div class="about-label">App</div>
+                    <div class="about-label">{{ t('aboutUs.appLabel') }}</div>
                     <div class="about-brand">
                         <span class="brand">MyUang</span>
                         <span class="brand-sub">by Me</span>
                     </div>
-                    <!-- <div class="about-sub">v1.4.11</div> -->
-                    <div class="about-body">
-                        MyUang is a personal finance app to help you track income, manage expenses,
-                        set budgets with pockets, and achieve your financial goals all in one place.
-                    </div>
+                    <div class="about-body">{{ t('aboutUs.appBody') }}</div>
                 </div>
 
                 <div class="divider" />
 
                 <div class="about-card">
-                    <div class="about-label">Features</div>
+                    <div class="about-label">{{ t('aboutUs.featuresLabel') }}</div>
                     <div class="feature-list">
                         <div class="feature-row">
                             <ion-icon :icon="lockClosedOutline" class="feature-icon" />
-                            <span>PIN security protection</span>
+                            <span>{{ t('aboutUs.features.pin') }}</span>
                         </div>
                         <div class="feature-row">
                             <ion-icon :icon="walletOutline" class="feature-icon" />
-                            <span>Multi-wallet management</span>
+                            <span>{{ t('aboutUs.features.wallet') }}</span>
                         </div>
                         <div class="feature-row">
                             <ion-icon :icon="trendingUpOutline" class="feature-icon" />
-                            <span>Income & expense tracking</span>
+                            <span>{{ t('aboutUs.features.tracking') }}</span>
                         </div>
                         <div class="feature-row">
                             <ion-icon :icon="layersOutline" class="feature-icon" />
-                            <span>Budget pockets</span>
+                            <span>{{ t('aboutUs.features.pockets') }}</span>
                         </div>
                         <div class="feature-row">
                             <ion-icon :icon="flagOutline" class="feature-icon" />
-                            <span>Financial goals</span>
+                            <span>{{ t('aboutUs.features.goals') }}</span>
                         </div>
                         <div class="feature-row">
                             <ion-icon :icon="notificationsOutline" class="feature-icon" />
-                            <span>Smart notifications</span>
+                            <span>{{ t('aboutUs.features.notifications') }}</span>
                         </div>
                     </div>
                 </div>
 
                 <div class="divider" />
-
-                <!-- <div class="about-card">
-                    <div class="about-label">Developer</div>
-                    <div class="about-body">Made with ❤️ for better financial habits.</div>
-                </div> -->
-
                 <div class="divider" />
 
                 <div class="about-card">
                     <div class="about-version">v1.7.15</div>
                     <div class="about-footer">© {{ currentYear }} MyUang. All rights reserved.</div>
                 </div>
-
             </div>
         </ion-content>
     </ion-page>
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonIcon } from '@ionic/vue'
 import AppHeader from '../components/AppHeader.vue'
-import {
-    walletOutline, trendingUpOutline, layersOutline,
-    flagOutline, notificationsOutline, lockClosedOutline
-} from 'ionicons/icons'
+import { walletOutline, trendingUpOutline, layersOutline, flagOutline, notificationsOutline, lockClosedOutline } from 'ionicons/icons'
 
+const { t } = useI18n()
 const currentYear = new Date().getFullYear()
 </script>
 

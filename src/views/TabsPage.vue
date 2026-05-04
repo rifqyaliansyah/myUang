@@ -6,22 +6,22 @@
             <ion-tab-bar slot="bottom">
                 <ion-tab-button tab="home" href="/">
                     <ion-icon :icon="homeOutline" />
-                    <ion-label>Home</ion-label>
+                    <ion-label>{{ t('tabs.home') }}</ion-label>
                 </ion-tab-button>
 
                 <ion-tab-button tab="budgeting" href="/budgeting">
                     <ion-icon :icon="compassOutline" />
-                    <ion-label>Budgeting</ion-label>
+                    <ion-label>{{ t('tabs.budgeting') }}</ion-label>
                 </ion-tab-button>
 
                 <ion-tab-button tab="goals" href="/goals">
                     <ion-icon :icon="flagOutline" />
-                    <ion-label>Goals</ion-label>
+                    <ion-label>{{ t('tabs.goals') }}</ion-label>
                 </ion-tab-button>
 
                 <ion-tab-button tab="profile" href="/profile">
                     <ion-icon :icon="personOutline" />
-                    <ion-label>Profile</ion-label>
+                    <ion-label>{{ t('tabs.profile') }}</ion-label>
                 </ion-tab-button>
             </ion-tab-bar>
         </ion-tabs>
@@ -30,20 +30,13 @@
 
 <script setup lang="ts">
 import {
-    IonPage,
-    IonTabs,
-    IonTabBar,
-    IonTabButton,
-    IonIcon,
-    IonLabel,
-    IonRouterOutlet,
+    IonPage, IonTabs, IonTabBar, IonTabButton,
+    IonIcon, IonLabel, IonRouterOutlet,
 } from '@ionic/vue'
-import {
-    homeOutline,
-    compassOutline,
-    flagOutline,
-    personOutline,
-} from 'ionicons/icons'
+import { homeOutline, compassOutline, flagOutline, personOutline } from 'ionicons/icons'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

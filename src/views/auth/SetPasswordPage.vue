@@ -7,18 +7,16 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Set Password</h1>
-                    <p>Create a password for your account so you can also login with email</p>
+                    <h1>{{ t('setPassword.title') }}</h1>
+                    <p>{{ t('setPassword.subtitle') }}</p>
                 </div>
 
-                <!-- Form -->
                 <div class="login-form">
-                    <!-- Password -->
                     <div class="form-group">
-                        <ion-label>Password</ion-label>
+                        <ion-label>{{ t('setPassword.password') }}</ion-label>
                         <div class="input-wrapper">
                             <ion-input v-model="password" :type="showPassword ? 'text' : 'password'"
-                                placeholder="Password" class="custom-input-password">
+                                :placeholder="t('setPassword.password')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showPassword = !showPassword">
                                     <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
@@ -26,16 +24,15 @@
                             </ion-input>
                         </div>
                         <p v-if="password && password.length < 8" class="error-text">
-                            Password must be at least 8 characters
+                            {{ t('setPassword.passwordMin') }}
                         </p>
                     </div>
 
-                    <!-- Repeat Password -->
                     <div class="form-group">
-                        <ion-label>Repeat Password</ion-label>
+                        <ion-label>{{ t('setPassword.repeatPassword') }}</ion-label>
                         <div class="input-wrapper" :class="{ 'input-error': repeatPassword && !passwordMatch }">
                             <ion-input v-model="repeatPassword" :type="showRepeatPassword ? 'text' : 'password'"
-                                placeholder="Repeat Password" class="custom-input-password">
+                                :placeholder="t('setPassword.repeatPassword')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showRepeatPassword = !showRepeatPassword">
                                     <ion-icon :icon="showRepeatPassword ? eyeOffOutline : eyeOutline" />
@@ -43,15 +40,14 @@
                             </ion-input>
                         </div>
                         <p v-if="repeatPassword && !passwordMatch" class="error-text">
-                            Passwords do not match
+                            {{ t('setPassword.passwordMatch') }}
                         </p>
                     </div>
                 </div>
 
-                <!-- Footer -->
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn" :disabled="!isFormValid" @click="handleSetPassword">
-                        Continue
+                        {{ t('setPassword.btn') }}
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
                 </div>
@@ -63,16 +59,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
-import {
-    IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon,
-    loadingController, toastController
-} from '@ionic/vue'
+import { useI18n } from 'vue-i18n'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
 import authService from '@/services/auth.service'
 import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const password = ref('')
 const repeatPassword = ref('')
@@ -91,10 +86,8 @@ async function showToast(message: string, color = 'danger') {
 
 const handleSetPassword = async () => {
     if (!isFormValid.value) return
-
     const loading = await loadingController.create({ message: 'Setting password...' })
     await loading.present()
-
     try {
         await authService.setPassword(password.value, auth.tempToken!)
         router.replace('/setup-pin')

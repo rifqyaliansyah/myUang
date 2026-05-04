@@ -1,46 +1,25 @@
 <template>
     <ion-page>
         <AppHeader title="Help Center" :show-back="true" back-href="/profile" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="about-card">
-                    <div class="about-label">Need Help?</div>
-                    <div class="about-body">
-                        If you have any questions or issues, feel free to reach out to us through any of the channels
-                        below.
-                    </div>
+                    <div class="about-label">{{ t('helpCenter.needHelp') }}</div>
+                    <div class="about-body">{{ t('helpCenter.body') }}</div>
                 </div>
-
                 <div class="divider" />
-
                 <div class="about-card">
-                    <div class="about-label">Contact Us</div>
+                    <div class="about-label">{{ t('helpCenter.contactLabel') }}</div>
                     <div class="contact-list">
                         <div class="contact-item">
                             <a class="contact-item" href="mailto:rifqyaliansyahdev@gmail.com">
                                 <ion-icon :icon="mailOutline" class="contact-icon" />
                                 <div class="contact-info">
-                                    <span class="contact-label">Email</span>
+                                    <span class="contact-label">{{ t('helpCenter.emailLabel') }}</span>
                                     <span class="contact-value">rifqyaliansyahdev@gmail.com</span>
                                 </div>
                             </a>
                         </div>
-                        <!-- <div class="contact-item">
-                            <ion-icon :icon="logoInstagram" class="contact-icon" />
-                            <div class="contact-info">
-                                <span class="contact-label">Instagram</span>
-                                <span class="contact-value">@myuang.app</span>
-                            </div>
-                        </div>
-                        <div class="contact-item">
-                            <ion-icon :icon="logoWhatsapp" class="contact-icon" />
-                            <div class="contact-info">
-                                <span class="contact-label">WhatsApp</span>
-                                <span class="contact-value">+62 812 3456 7890</span>
-                            </div>
-                        </div> -->
                     </div>
                 </div>
             </div>
@@ -49,9 +28,12 @@
 </template>
 
 <script setup lang="ts">
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonIcon } from '@ionic/vue'
 import AppHeader from '../components/AppHeader.vue'
-import { mailOutline, logoInstagram, logoWhatsapp } from 'ionicons/icons'
+import { mailOutline } from 'ionicons/icons'
+
+const { t } = useI18n()
 </script>
 
 <style scoped>

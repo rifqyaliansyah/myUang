@@ -6,7 +6,7 @@
             <div class="page-wrapper">
                 <!-- Summary Header -->
                 <div class="summary-header">
-                    <span class="summary-title">Summary</span>
+                    <span class="summary-title">{{ t('incomeSummary.summary') }}</span>
                     <div class="summary-period" id="income-period-trigger">
                         <span>{{ selectedLabel }}</span>
                         <ion-icon :icon="chevronDownOutline" class="period-chevron"
@@ -33,7 +33,7 @@
 
                 <div v-else class="transaction-list">
                     <div v-if="localTransactions.length === 0" class="empty-tx">
-                        <p>No income yet</p>
+                        <p>{{ t('incomeSummary.noIncome') }}</p>
                     </div>
 
                     <ion-card class="transaction-card clickable" v-for="tx in localTransactions" :key="tx.id"
@@ -41,7 +41,7 @@
                         <ion-card-content>
                             <div class="transaction-item">
                                 <div class="transaction-info">
-                                    <p class="transaction-name">{{ tx.note || 'Income' }}</p>
+                                    <p class="transaction-name">{{ tx.note || t('incomeSummary.income') }}</p>
                                     <p class="transaction-date">{{ formatDate(tx.date) }}</p>
                                 </div>
                                 <p class="transaction-amount income">+ IDR {{ formatAmount(tx.amount) }}</p>
@@ -70,6 +70,9 @@ import { useRouter } from 'vue-router'
 import transactionService from '@/services/transaction.service'
 import type { Transaction } from '@/stores/transaction'
 import { usePeriodFilter, type PeriodKey } from '@/composables/usePeriodFilter'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const walletStore = useWalletStore()

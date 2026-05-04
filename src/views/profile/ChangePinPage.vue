@@ -1,7 +1,6 @@
 <template>
     <ion-page>
         <AppHeader title="Change PIN" :show-back="true" back-href="/security" :show-menu="false" />
-
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
                 <div class="pin-header">
@@ -9,19 +8,14 @@
                     <p>{{ stepSubtitle }}</p>
                 </div>
 
-                <!-- PIN Dots -->
                 <div class="pin-dots">
                     <div v-for="i in 4" :key="i" class="pin-dot"
                         :class="{ filled: currentPin.length >= i, error: !!errorMessage }" />
                 </div>
 
-                <!-- Error -->
                 <p v-if="errorMessage" class="error-message">{{ errorMessage }}</p>
-
-                <!-- Spacer -->
                 <div class="spacer" />
 
-                <!-- Keyboard -->
                 <div class="pin-keyboard">
                     <div class="keyboard-row" v-for="row in keyboardRows" :key="row.join('')">
                         <button v-for="key in row" :key="key" class="key-btn"
@@ -46,14 +40,15 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, toastController } from '@ionic/vue'
 import AppHeader from '../components/AppHeader.vue'
 import authService from '@/services/auth.service'
 
 const router = useRouter()
+const { t } = useI18n()
 
 type Step = 'verify' | 'create' | 'confirm'
-
 const step = ref<Step>('verify')
 const currentPin = ref('')
 const oldPin = ref('')
@@ -62,22 +57,18 @@ const errorMessage = ref('')
 const isLoading = ref(false)
 
 const stepTitle = computed(() => {
-    if (step.value === 'verify') return 'Enter Current PIN'
-    if (step.value === 'create') return 'Enter New PIN'
-    return 'Confirm New PIN'
+    if (step.value === 'verify') return t('changePin.verifyTitle')
+    if (step.value === 'create') return t('changePin.createTitle')
+    return t('changePin.confirmTitle')
 })
-
 const stepSubtitle = computed(() => {
-    if (step.value === 'verify') return 'Please enter your current PIN first'
-    if (step.value === 'create') return 'Create a new PIN for your account'
-    return 'Re-enter your new PIN to confirm'
+    if (step.value === 'verify') return t('changePin.verifySubtitle')
+    if (step.value === 'create') return t('changePin.createSubtitle')
+    return t('changePin.confirmSubtitle')
 })
 
 const keyboardRows = [
-    ['1', '2', '3'],
-    ['4', '5', '6'],
-    ['7', '8', '9'],
-    ['', '0', 'del'],
+    ['1', '2', '3'], ['4', '5', '6'], ['7', '8', '9'], ['', '0', 'del'],
 ]
 
 async function showToast(message: string, color = 'danger') {
@@ -87,67 +78,37 @@ async function showToast(message: string, color = 'danger') {
 
 async function handleKey(key: string) {
     if (isLoading.value) return
-
     if (key === 'del') {
-        if (currentPin.value.length > 0) {
-            currentPin.value = currentPin.value.slice(0, -1)
-            errorMessage.value = ''
-        }
+        if (currentPin.value.length > 0) { currentPin.value = currentPin.value.slice(0, -1); errorMessage.value = '' }
         return
     }
-
     if (key === '' || currentPin.value.length >= 4) return
-
     errorMessage.value = ''
     currentPin.value += key
-
     if (currentPin.value.length < 4) return
 
-    // All 4 digits entered
-    if (step.value === 'verify') {
-        // Just save old PIN and move to create step — actual verify happens on submit
-        oldPin.value = currentPin.value
-        currentPin.value = ''
-        step.value = 'create'
-        return
-    }
+    if (step.value === 'verify') { oldPin.value = currentPin.value; currentPin.value = ''; step.value = 'create'; return }
+    if (step.value === 'create') { newPin.value = currentPin.value; currentPin.value = ''; step.value = 'confirm'; return }
 
-    if (step.value === 'create') {
-        newPin.value = currentPin.value
-        currentPin.value = ''
-        step.value = 'confirm'
-        return
-    }
-
-    // Confirm step
     if (currentPin.value !== newPin.value) {
-        errorMessage.value = 'PIN does not match. Please try again.'
-        currentPin.value = ''
-        newPin.value = ''
-        step.value = 'create'
+        errorMessage.value = t('changePin.pinMismatch')
+        currentPin.value = ''; newPin.value = ''; step.value = 'create'
         return
     }
 
-    // All good — submit
     isLoading.value = true
     try {
         await authService.changePin(oldPin.value, newPin.value)
-        showToast('PIN changed successfully', 'success')
+        showToast(t('changePin.toastSuccess'), 'success')
         router.replace('/security')
     } catch (err: any) {
-        const msg = err.response?.data?.message || 'Failed to change PIN'
+        const msg = err.response?.data?.message || t('changePin.toastFailed')
         showToast(msg)
-        // If old PIN was wrong, restart from verify step
         if (err.response?.status === 401) {
             errorMessage.value = msg
-            oldPin.value = ''
-            newPin.value = ''
-            currentPin.value = ''
-            step.value = 'verify'
+            oldPin.value = ''; newPin.value = ''; currentPin.value = ''; step.value = 'verify'
         } else {
-            currentPin.value = ''
-            newPin.value = ''
-            step.value = 'create'
+            currentPin.value = ''; newPin.value = ''; step.value = 'create'
         }
     } finally {
         isLoading.value = false

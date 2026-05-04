@@ -6,7 +6,7 @@
             <div class="page-wrapper">
                 <!-- Summary Header -->
                 <div class="summary-header">
-                    <span class="summary-title">Summary</span>
+                    <span class="summary-title">{{ t('expenseSummary.summary') }}</span>
                     <div class="summary-period" id="expense-period-trigger">
                         <span>{{ selectedLabel }}</span>
                         <ion-icon :icon="chevronDownOutline" class="period-chevron"
@@ -33,7 +33,7 @@
 
                 <div v-else class="transaction-list">
                     <div v-if="localTransactions.length === 0" class="empty-tx">
-                        <p>No expenses yet</p>
+                        <p>{{ t('expenseSummary.noExpenses') }}</p>
                     </div>
 
                     <ion-card class="transaction-card clickable" v-for="tx in localTransactions" :key="tx.id"
@@ -70,6 +70,9 @@ import { useRouter } from 'vue-router'
 import transactionService from '@/services/transaction.service'
 import type { Transaction } from '@/stores/transaction'
 import { usePeriodFilter, type PeriodKey } from '@/composables/usePeriodFilter'
+import { useI18n } from 'vue-i18n'
+
+const { t } = useI18n()
 
 const router = useRouter()
 const walletStore = useWalletStore()
@@ -82,6 +85,12 @@ const loading = ref(false)
 const hasMore = ref(true)
 const LIMIT = 10
 let currentOffset = 0
+
+const txLabel = (tx: any) => {
+    if (tx.note) return tx.note
+    if (tx.type === 'goal_topup') return `${t('expenseSummary.goals')}: ${tx.goal_name ?? 'Goal'}`
+    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : t('expenseSummary.expense')
+}
 
 onMounted(async () => {
     if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
@@ -135,12 +144,6 @@ const formatAmount = (value: number) => Math.floor(Number(value) || 0).toLocaleS
 const formatDate = (dateStr: string) => {
     const d = new Date(dateStr)
     return d.toLocaleDateString('id-ID', { day: '2-digit', month: '2-digit', year: '2-digit' })
-}
-
-const txLabel = (tx: any) => {
-    if (tx.note) return tx.note
-    if (tx.type === 'goal_topup') return `Goals: ${tx.goal_name ?? 'Goal'}`
-    return tx.pocket_name ? `${tx.pocket_emoji} ${tx.pocket_name}` : 'Expense'
 }
 
 const popoverStyle = computed(() => {

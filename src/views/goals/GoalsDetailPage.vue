@@ -1,10 +1,9 @@
 <template>
     <ion-page>
-        <AppHeader title="Goals Details" :show-back="true" back-href="/goals" :show-menu="false" />
+        <AppHeader :title="t('goalsDetail.title')" :show-back="true" back-href="/goals" :show-menu="false" />
 
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div v-if="loading" class="loading-wrapper">
                     <ion-spinner name="crescent" />
                 </div>
@@ -18,26 +17,26 @@
                         <div class="goal-name">{{ goal.name }}</div>
                         <div class="goal-desc">{{ goal.description }}</div>
                         <div class="goal-amount">IDR {{ formatAmount(goal.reached) }}</div>
-
                         <div class="goal-progress-bar">
                             <div class="goal-progress-fill" :style="{ width: progressPercent + '%' }" />
                         </div>
-
                         <div class="goal-reached">
-                            IDR {{ formatAmount(goal.reached) }} of IDR {{ formatAmount(goal.target_amount) }} reached
+                            IDR {{ formatAmount(goal.reached) }} of IDR {{ formatAmount(goal.target_amount) }} {{
+                                t('goalsDetail.reached') }}
                         </div>
                     </div>
 
-                    <div class="section-title">Goal Money Record Activities</div>
+                    <div class="section-title">{{ t('goalsDetail.sectionTitle') }}</div>
 
                     <div class="transaction-list">
                         <div v-if="activities.length === 0" class="empty-activities">
-                            <p>No activities yet</p>
+                            <p>{{ t('goalsDetail.noActivities') }}</p>
                         </div>
                         <div class="transaction-card" v-for="tx in activities" :key="tx.id">
                             <div class="transaction-item">
                                 <div class="transaction-info">
-                                    <p class="transaction-name">{{ tx.wallet_id ? 'From Wallet' : 'No Source' }}</p>
+                                    <p class="transaction-name">{{ tx.wallet_id ? t('goalsDetail.fromWallet') :
+                                        t('goalsDetail.noSource') }}</p>
                                     <p class="transaction-date">{{ formatDate(tx.date) }}</p>
                                 </div>
                                 <p class="transaction-amount income">
@@ -47,7 +46,6 @@
                         </div>
                     </div>
                 </template>
-
             </div>
 
             <ion-infinite-scroll @ionInfinite="loadMore" :disabled="!hasMore">
@@ -66,17 +64,16 @@
             <ion-content class="modal-content">
                 <div class="modal-wrapper">
                     <div class="sheet-handle" ref="handleRef" />
-
-                    <div class="modal-title">Top-up Goal</div>
+                    <div class="modal-title">{{ t('goalsDetail.topUpTitle') }}</div>
 
                     <div class="source-toggle">
                         <button class="toggle-btn" :class="{ active: sourceMode === 'wallet' }"
                             @click="sourceMode = 'wallet'">
-                            From Wallet
+                            {{ t('goalsDetail.fromWalletBtn') }}
                         </button>
                         <button class="toggle-btn" :class="{ active: sourceMode === 'manual' }"
                             @click="sourceMode = 'manual'">
-                            No Source
+                            {{ t('goalsDetail.noSourceBtn') }}
                         </button>
                     </div>
 
@@ -89,7 +86,7 @@
                     </div>
 
                     <div class="form-group">
-                        <ion-label>Amount</ion-label>
+                        <ion-label>{{ t('goalsDetail.amount') }}</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="currency-label">IDR</span>
                             <ion-input v-model="displayTopUpAmount" type="text" inputmode="numeric" placeholder="0"
@@ -100,7 +97,7 @@
                     <ion-button expand="block" class="save-btn" :disabled="!topUpAmount || isSubmitting"
                         @click="handleTopUp">
                         <ion-spinner v-if="isSubmitting" name="crescent" style="width:20px;height:20px;" />
-                        <span v-else>Top-up</span>
+                        <span v-else>{{ t('goalsDetail.topUpBtn') }}</span>
                     </ion-button>
                 </div>
             </ion-content>
@@ -110,6 +107,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted, watch, nextTick } from 'vue'
+import { useI18n } from 'vue-i18n'
 import {
     IonPage, IonContent, IonFab, IonFabButton, IonIcon,
     IonModal, IonLabel, IonInput, IonButton, IonSpinner,
@@ -127,6 +125,7 @@ const route = useRoute()
 const goalStore = useGoalStore()
 const walletStore = useWalletStore()
 const transactionStore = useTransactionStore()
+const { t } = useI18n()
 
 const loading = ref(false)
 const showTopUpModal = ref(false)
@@ -138,15 +137,12 @@ const topUpModalRef = ref()
 const hasMore = ref(true)
 const LIMIT = 10
 let currentOffset = 0
-
 const sourceMode = ref<'wallet' | 'manual'>('wallet')
-
 const goalId = route.params.id as string
 
 const goal = computed(() => goalStore.goals.find(g => g.id === goalId))
 const activeWallet = computed(() => walletStore.wallets.find(w => w.is_active))
 const activities = computed(() => transactionStore.goalActivities)
-
 const progressPercent = computed(() => {
     if (!goal.value?.target_amount) return 0
     return Math.min((goal.value.reached / goal.value.target_amount) * 100, 100)
@@ -162,7 +158,6 @@ watch(showTopUpModal, (val) => {
     nextTick(() => {
         const el = handleRef.value?.$el ?? handleRef.value
         if (!el) return
-
         let startY = 0
         const gesture = createGesture({
             el,
@@ -170,8 +165,7 @@ watch(showTopUpModal, (val) => {
             direction: 'y',
             onStart: (detail) => { startY = detail.startY },
             onEnd: (detail) => {
-                const delta = detail.currentY - startY
-                if (delta > 60) showTopUpModal.value = false
+                if (detail.currentY - startY > 60) showTopUpModal.value = false
             },
         })
         gesture.enable()
@@ -217,32 +211,23 @@ const handleTopUpAmountInput = (e: any) => {
 
 const handleTopUp = async () => {
     if (!topUpAmount.value) return
-
-    if (sourceMode.value === 'wallet' && !activeWallet.value) {
-        return showToast('No active wallet')
-    }
-
+    if (sourceMode.value === 'wallet' && !activeWallet.value) return showToast(t('goalsDetail.noActiveWallet'))
     isSubmitting.value = true
     try {
         await goalStore.topUpGoal(goalId, {
             wallet_id: sourceMode.value === 'wallet' ? activeWallet.value!.id : null,
             amount: Number(topUpAmount.value),
         })
-
-        if (sourceMode.value === 'wallet') {
-            await walletStore.fetchWallets()
-        }
-
+        if (sourceMode.value === 'wallet') await walletStore.fetchWallets()
         transactionStore.goalActivities = []
         hasMore.value = true
         currentOffset = 0
         const data = await transactionStore.fetchGoalActivities(goalId)
         if (data.length < LIMIT) hasMore.value = false
-
         showTopUpModal.value = false
-        showToast('Top-up successful', 'success')
+        showToast(t('goalsDetail.toastSuccess'), 'success')
     } catch (err: any) {
-        showToast(err?.response?.data?.message || 'Failed to top-up')
+        showToast(err?.response?.data?.message || t('goalsDetail.toastFailed'))
     } finally {
         isSubmitting.value = false
     }

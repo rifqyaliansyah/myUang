@@ -1,24 +1,19 @@
 <template>
     <ion-page>
-        <AppHeader :title="isEdit ? 'Edit Wallet' : 'Add Wallet'" :show-back="true" back-href="/wallet"
-            :show-menu="false" />
-
+        <AppHeader :title="isEdit ? t('walletForm.titleEdit') : t('walletForm.titleAdd')" :show-back="true"
+            back-href="/wallet" :show-menu="false" />
         <ion-content class="page-content" :fullscreen="true">
             <div class="page-wrapper">
-
                 <div class="form-content">
-                    <!-- Wallet Name -->
                     <div class="form-group">
-                        <ion-label>Wallet Name</ion-label>
+                        <ion-label>{{ t('walletForm.walletName') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="walletName" type="text" placeholder="Wallet Name"
+                            <ion-input v-model="walletName" type="text" :placeholder="t('walletForm.walletName')"
                                 class="custom-input" />
                         </div>
                     </div>
-
-                    <!-- Amount -->
                     <div class="form-group">
-                        <ion-label>Amount (Optional)</ion-label>
+                        <ion-label>{{ t('walletForm.amount') }}</ion-label>
                         <div class="input-wrapper amount-wrapper">
                             <span class="currency-label">IDR</span>
                             <ion-input v-model="displayAmount" type="text" inputmode="numeric" placeholder="0"
@@ -26,16 +21,13 @@
                         </div>
                     </div>
                 </div>
-
-                <!-- Button -->
                 <div class="footer">
                     <ion-button expand="block" class="save-btn" :disabled="!walletName || loading"
                         @click="handleSubmit">
                         <ion-spinner v-if="loading" name="crescent" />
-                        <span v-else>{{ isEdit ? 'Edit Wallet' : 'Add Wallet' }}</span>
+                        <span v-else>{{ isEdit ? t('walletForm.btnEdit') : t('walletForm.btnAdd') }}</span>
                     </ion-button>
                 </div>
-
             </div>
         </ion-content>
     </ion-page>
@@ -43,6 +35,7 @@
 
 <script setup lang="ts">
 import { ref, computed, onMounted } from 'vue'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonSpinner, toastController } from '@ionic/vue'
 import { useRoute, useRouter } from 'vue-router'
 import AppHeader from '../components/AppHeader.vue'
@@ -51,9 +44,9 @@ import { useWalletStore } from '@/stores/wallet'
 const route = useRoute()
 const router = useRouter()
 const walletStore = useWalletStore()
+const { t } = useI18n()
 
 const isEdit = computed(() => route.name === 'Edit Wallet')
-
 const walletName = ref('')
 const amount = ref('')
 const displayAmount = ref('')
@@ -61,17 +54,14 @@ const loading = ref(false)
 
 onMounted(async () => {
     if (isEdit.value) {
-        if (walletStore.wallets.length === 0) {
-            await walletStore.fetchWallets()
-        }
-        const id = route.params.id as string
-        const wallet = walletStore.wallets.find(w => w.id === id)
+        if (walletStore.wallets.length === 0) await walletStore.fetchWallets()
+        const wallet = walletStore.wallets.find(w => w.id === route.params.id as string)
         if (wallet) {
             walletName.value = wallet.name
             amount.value = String(wallet.balance)
             displayAmount.value = Number(wallet.balance).toLocaleString('id-ID')
         } else {
-            showToast('Wallet not found')
+            showToast(t('walletForm.toastNotFound'))
             router.replace('/wallet')
         }
     }
@@ -92,18 +82,16 @@ const handleSubmit = async () => {
     loading.value = true
     try {
         const payload = { name: walletName.value, balance: amount.value ? Number(amount.value) : 0 }
-
         if (isEdit.value) {
             await walletStore.updateWallet(route.params.id as string, payload)
-            showToast('Wallet updated', 'success')
+            showToast(t('walletForm.toastUpdated'), 'success')
         } else {
             await walletStore.createWallet(payload)
-            showToast('Wallet added', 'success')
+            showToast(t('walletForm.toastAdded'), 'success')
         }
-
         router.replace('/wallet')
     } catch {
-        showToast('Failed to save wallet')
+        showToast(t('walletForm.toastFailed'))
     } finally {
         loading.value = false
     }

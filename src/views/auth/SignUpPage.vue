@@ -7,34 +7,32 @@
             </div>
             <div class="login-wrapper">
                 <div class="login-header">
-                    <h1>Sign Up</h1>
-                    <p>Please sign up to enjoy all MyUang features</p>
+                    <h1>{{ t('signUp.title') }}</h1>
+                    <p>{{ t('signUp.subtitle') }}</p>
                 </div>
 
-                <!-- Form -->
                 <div class="login-form">
-                    <!-- Name -->
                     <div class="form-group">
-                        <ion-label>Name</ion-label>
+                        <ion-label>{{ t('signUp.name') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="name" type="text" placeholder="Name" class="custom-input" />
+                            <ion-input v-model="name" type="text" :placeholder="t('signUp.name')"
+                                class="custom-input" />
                         </div>
                     </div>
 
-                    <!-- Email -->
                     <div class="form-group">
-                        <ion-label>Email</ion-label>
+                        <ion-label>{{ t('signUp.email') }}</ion-label>
                         <div class="input-wrapper">
-                            <ion-input v-model="email" type="email" placeholder="Email" class="custom-input" />
+                            <ion-input v-model="email" type="email" :placeholder="t('signUp.email')"
+                                class="custom-input" />
                         </div>
                     </div>
 
-                    <!-- Password -->
                     <div class="form-group">
-                        <ion-label>Password</ion-label>
+                        <ion-label>{{ t('signUp.password') }}</ion-label>
                         <div class="input-wrapper">
                             <ion-input v-model="password" :type="showPassword ? 'text' : 'password'"
-                                placeholder="Password" class="custom-input-password">
+                                :placeholder="t('signUp.password')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showPassword = !showPassword">
                                     <ion-icon :icon="showPassword ? eyeOffOutline : eyeOutline" />
@@ -43,35 +41,35 @@
                         </div>
                     </div>
 
-                    <!-- Repeat Password -->
                     <div class="form-group">
-                        <ion-label>Repeat Password</ion-label>
+                        <ion-label>{{ t('signUp.repeatPassword') }}</ion-label>
                         <div class="input-wrapper" :class="{ 'input-error': repeatPassword && !passwordMatch }">
                             <ion-input v-model="repeatPassword" :type="showRepeatPassword ? 'text' : 'password'"
-                                placeholder="Repeat Password" class="custom-input-password">
+                                :placeholder="t('signUp.repeatPassword')" class="custom-input-password">
                                 <ion-button fill="clear" slot="end" class="toggle-password"
                                     @click="showRepeatPassword = !showRepeatPassword">
                                     <ion-icon :icon="showRepeatPassword ? eyeOffOutline : eyeOutline" />
                                 </ion-button>
                             </ion-input>
                         </div>
-                        <p v-if="repeatPassword && !passwordMatch" class="error-text">Passwords do not match</p>
+                        <p v-if="repeatPassword && !passwordMatch" class="error-text">
+                            {{ t('signUp.passwordMatch') }}
+                        </p>
                     </div>
                 </div>
 
-                <!-- Footer -->
                 <div class="login-footer">
                     <ion-button expand="block" class="login-btn"
                         :disabled="!name || !email || !password || !repeatPassword || !passwordMatch"
                         @click="handleRegister">
-                        Sign Up
+                        {{ t('signUp.btn') }}
                         <ion-icon :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
 
                     <p class="signup-text">
-                        Already have an account?
+                        {{ t('signUp.alreadyHave') }}
                         <ion-button fill="clear" class="signup-btn" router-link="/login">
-                            Log In
+                            {{ t('signUp.logIn') }}
                         </ion-button>
                     </p>
                 </div>
@@ -83,6 +81,7 @@
 <script setup lang="ts">
 import { ref, computed } from 'vue'
 import { useRouter } from 'vue-router'
+import { useI18n } from 'vue-i18n'
 import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, loadingController, toastController } from '@ionic/vue'
 import { eyeOutline, eyeOffOutline, chevronForwardOutline } from 'ionicons/icons'
 import authService from '@/services/auth.service'
@@ -90,6 +89,7 @@ import { useAuthStore } from '@/stores/auth'
 
 const router = useRouter()
 const auth = useAuthStore()
+const { t } = useI18n()
 
 const name = ref('')
 const email = ref('')
@@ -108,40 +108,34 @@ async function showToast(message: string, color = 'danger') {
 function extractErrorMessage(err: any): string {
     const data = err.response?.data
     if (!data) return 'Registration failed'
-
     if (data.errors?.length > 0) {
         return data.errors[0].msg === 'Invalid value' && data.errors[0].path === 'email'
             ? 'Invalid email format'
             : data.errors[0].msg
     }
-
     return data.message || 'Registration failed'
 }
 
 const handleRegister = async () => {
-  if (!passwordMatch.value) return
-
-  const loading = await loadingController.create({ message: 'Creating account...' })
-  await loading.present()
-
-  try {
-    const res = await authService.register({
-      name: name.value,
-      email: email.value,
-      password: password.value,
-    })
-    const { user, tempToken } = res.data.data
-
-    auth.setUser(user)
-    auth.setTempToken(tempToken)
-    auth.setIsPinSet(false)
-
-    router.replace('/setup-pin')
-  } catch (err: any) {
-      showToast(extractErrorMessage(err))
-  } finally {
-    await loading.dismiss()
-  }
+    if (!passwordMatch.value) return
+    const loading = await loadingController.create({ message: 'Creating account...' })
+    await loading.present()
+    try {
+        const res = await authService.register({
+            name: name.value,
+            email: email.value,
+            password: password.value,
+        })
+        const { user, tempToken } = res.data.data
+        auth.setUser(user)
+        auth.setTempToken(tempToken)
+        auth.setIsPinSet(false)
+        router.replace('/setup-pin')
+    } catch (err: any) {
+        showToast(extractErrorMessage(err))
+    } finally {
+        await loading.dismiss()
+    }
 }
 </script>
 
