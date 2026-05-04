@@ -22,9 +22,11 @@
                 </div>
 
                 <div class="login-footer">
-                    <ion-button expand="block" class="login-btn" :disabled="!email" @click="handleSendRequest">
-                        {{ t('forgotPassword.btn') }}
-                        <ion-icon :icon="chevronForwardOutline" slot="end" />
+                    <ion-button expand="block" class="login-btn" :disabled="!email || isLoading"
+                        @click="handleSendRequest">
+                        <ion-spinner v-if="isLoading" name="crescent" style="width:20px;height:20px;" />
+                        <span v-else>{{ t('forgotPassword.btn') }}</span>
+                        <ion-icon v-if="!isLoading" :icon="chevronForwardOutline" slot="end" />
                     </ion-button>
 
                     <p class="signup-text">
@@ -41,14 +43,32 @@
 <script setup lang="ts">
 import { ref } from 'vue'
 import { useI18n } from 'vue-i18n'
-import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon } from '@ionic/vue'
+import { IonPage, IonContent, IonLabel, IonInput, IonButton, IonIcon, IonSpinner, toastController } from '@ionic/vue'
 import { chevronForwardOutline } from 'ionicons/icons'
+import { useRouter } from 'vue-router'
+import authService from '@/services/auth.service'
 
 const { t } = useI18n()
+const router = useRouter()
 const email = ref('')
+const isLoading = ref(false)
 
-const handleSendRequest = () => {
-    console.log('Send reset password to:', email.value)
+async function showToast(message: string, color = 'danger') {
+    const toast = await toastController.create({ message, duration: 2500, color, position: 'top' })
+    await toast.present()
+}
+
+const handleSendRequest = async () => {
+    if (!email.value) return
+    isLoading.value = true
+    try {
+        await authService.forgotPassword(email.value)
+        router.push('/sent-mail')
+    } catch (err: any) {
+        showToast(err?.response?.data?.message || 'Failed to send reset email')
+    } finally {
+        isLoading.value = false
+    }
 }
 </script>
 

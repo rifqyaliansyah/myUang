@@ -55,6 +55,12 @@ const authService = {
 
     resume: (refreshToken: string) =>
         api.post('/auth/resume', { refreshToken }),
+
+    forgotPassword: (email: string) =>
+        api.post('/auth/forgot-password', { email }),
+
+    resetPassword: (token: string, newPassword: string) =>
+        api.post('/auth/reset-password', { token, newPassword }),
 }
 
 export default authService

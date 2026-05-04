@@ -31,8 +31,9 @@ import NotFoundPage from '../views/components/NotFoundPage.vue'
 import SecurityPage from '../views/profile/SecurityPage.vue'
 import ChangePinPage from '../views/profile/ChangePinPage.vue'
 import ChangePasswordPage from '../views/profile/ChangePasswordPage.vue'
+import ResetPasswordPage from '../views/auth/ResetPasswordPage.vue'
 
-const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail']
+const PUBLIC_ROUTES = ['/login', '/signup', '/forgot-password', '/sent-mail', '/reset-password']
 const TEMP_TOKEN_ROUTES = ['/setup-pin', '/verify-pin', '/set-password']
 const PIN_SUCCESS_ROUTE = '/welcome'
 const AFTER_LOGIN_BLOCKED = [...PUBLIC_ROUTES, ...TEMP_TOKEN_ROUTES, PIN_SUCCESS_ROUTE]
@@ -243,6 +244,12 @@ const routes: Array<RouteRecordRaw> = [
     name: 'Change Password',
     meta: { title: 'Change Password' },
     component: ChangePasswordPage
+  },
+  {
+    path: '/reset-password',
+    name: 'Reset Password',
+    meta: { title: 'Reset Password' },
+    component: ResetPasswordPage
   },
   {
     path: '/:pathMatch(.*)*',

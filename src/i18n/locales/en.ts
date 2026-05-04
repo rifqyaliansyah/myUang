@@ -311,4 +311,10 @@ export default {
             default: 'Transaction',
         },
     },
+    resetPassword: {
+        invalidToken: 'This reset link is invalid or has expired.',
+        requestAgain: 'Request a new link',
+        successToast: 'Password reset successfully, please login',
+        failedToast: 'Failed to reset password',
+    },
 }

@@ -311,4 +311,10 @@ export default {
             default: 'Transaksi',
         },
     },
+    resetPassword: {
+        invalidToken: 'Link reset ini tidak valid atau sudah kadaluarsa.',
+        requestAgain: 'Minta link baru',
+        successToast: 'Password berhasil direset, silakan login',
+        failedToast: 'Gagal mereset password',
+    },
 }
